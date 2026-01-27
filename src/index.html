@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="description" content="An Angry Birds-inspired WebGL browser game." />
+	<meta name="robots" content="index, follow" />
+	<title>Angry Birds</title>
+	<link rel="stylesheet" href="./style.css" />
+	<link rel="icon" href="/favicon.ico" type="image/x-icon">
+</head>
+
+<body>
+	<section id="loader-wrap">
+		<div id="loader">
+			<div id="loading">
+				<p class="loader-p">Loading</p>
+				<p id="loader-percent" class="loader-p">0</p>
+			</div>
+			<div id="loader-bar"></div>
+		</div>
+	</section>
+
+
+
+	<div id="game-overlay">
+		<div id="controls">
+			<button class="btn" id="sound-btn">
+				<span class="sound-bar"></span>
+				<span class="sound-bar"></span>
+				<span class="sound-bar"></span>
+				<span class="sound-bar"></span>
+			</button>
+			<svg width="32" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round"
+				stroke-linejoin="round" class="btn" id="fullscreen-btn">
+				<path class="fullscreen active"
+					d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+				<path class="fullscreen"
+					d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+			</svg>
+		</div>
+		<button class="btn" id="play-btn">
+			<svg width="32" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round"
+				stroke-linejoin="round">
+				<path d="M6 4v16 M20 12L6 20 M20 12L6 4" />
+			</svg>
+			Play
+		</button>
+	</div>
+	<canvas id="webgl"></canvas>
+	<script type="module" src="./main.js"></script>
+</body>
+
+</html>

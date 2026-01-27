@@ -1,0 +1,171 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+:root {
+	--transition: 0.5s;
+	--red: #ea002a;
+}
+
+body {
+	font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+	overflow: hidden;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: geometricPrecision;
+}
+
+#loader-wrap {
+	position: fixed;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: var(--transition);
+	background-color: #fff;
+	z-index: 2;
+}
+
+#loader-wrap.end {
+	opacity: 0;
+}
+
+#loader-wrap.remove {
+	display: none;
+}
+
+#loader {
+	width: 400px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+#loading {
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	overflow: hidden;
+}
+
+.loader-p {
+	font-size: 1.2rem;
+	line-height: 1.15;
+	transform: translateY(100%);
+	transition: var(--transition) ease;
+}
+
+.loader-p.active {
+	transform: translateY(0);
+}
+
+#loader-bar {
+	height: 3px;
+	width: 100%;
+	background-color: #ccc;
+	transition: var(--transition) ease;
+	transform-origin: left;
+	border-radius: 4px;
+	transform: scaleX(0);
+}
+
+#loader-bar.active {
+	transform: scaleX(1);
+}
+
+#loader-bar::before {
+	content: "";
+	position: absolute;
+	transform-origin: left;
+	height: inherit;
+	width: 100%;
+	background-color: var(--red);
+	border-radius: inherit;
+	transition: var(--transition) ease;
+	transform: scaleX(var(--s, 0));
+}
+
+
+
+#game-overlay {
+	position: absolute;
+	inset: 0;
+	display: none;
+}
+
+#controls {
+	position: absolute;
+	right: 3rem;
+	bottom: 2rem;
+	display: flex;
+	align-items: flex-end;
+	gap: 2rem;
+}
+
+.fullscreen {
+	transition: .5s;
+	opacity: 0;
+}
+
+.fullscreen.active {
+	opacity: 1;
+}
+
+#sound-btn {
+	display: flex;
+	align-items: flex-end;
+	gap: 4px;
+	transform: translateY(-3px);
+	height: 28px;
+}
+
+.sound-bar {
+	width: 2px;
+	height: 8px;
+	background: var(--white);
+	animation: sound 1s infinite;
+}
+
+.sound-bar.paused {
+	animation: none;
+	height: 8px;
+}
+
+.sound-bar:nth-child(2) {
+	animation-delay: .4s;
+}
+
+.sound-bar:nth-child(3) {
+	animation-delay: .2s;
+}
+
+@keyframes sound {
+
+	0%,
+	100% {
+		height: 8px;
+	}
+
+	50% {
+		height: 20px;
+	}
+}
+
+#play-btn {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	font-size: 2rem;
+}
+
+#webgl {
+	position: fixed;
+	inset: 0;
+	outline: none;
+}
