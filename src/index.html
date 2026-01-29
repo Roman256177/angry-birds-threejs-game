@@ -21,34 +21,36 @@
 			<div id="loader-bar"></div>
 		</div>
 	</section>
+	<section id="game">
+		<div id="overlay">
+			<div id="controls">
+				<button id="sound-btn">
+					<span class="sound-bar"></span>
+					<span class="sound-bar"></span>
+					<span class="sound-bar"></span>
+					<span class="sound-bar"></span>
+				</button>
+				<button id="screen-btn">
+					<svg width="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.75"
+						stroke-linecap="round" stroke-linejoin="round">
+						<path class="screen active"
+							d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+						<path class="screen"
+							d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+					</svg>
+				</button>
+			</div>
 
-
-
-	<div id="game-overlay">
-		<div id="controls">
-			<button class="btn" id="sound-btn">
-				<span class="sound-bar"></span>
-				<span class="sound-bar"></span>
-				<span class="sound-bar"></span>
-				<span class="sound-bar"></span>
+			<button class="btn" id="play-btn">
+				<svg width="32" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round"
+					stroke-linejoin="round">
+					<path d="M6 4v16 M20 12L6 20 M20 12L6 4" />
+				</svg>
+				Play
 			</button>
-			<svg width="32" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round"
-				stroke-linejoin="round" class="btn" id="fullscreen-btn">
-				<path class="fullscreen active"
-					d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-				<path class="fullscreen"
-					d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
-			</svg>
 		</div>
-		<button class="btn" id="play-btn">
-			<svg width="32" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round"
-				stroke-linejoin="round">
-				<path d="M6 4v16 M20 12L6 20 M20 12L6 4" />
-			</svg>
-			Play
-		</button>
-	</div>
-	<canvas id="webgl"></canvas>
+		<canvas id="webgl"></canvas>
+	</section>
 	<script type="module" src="./main.js"></script>
 </body>
 

@@ -10,12 +10,23 @@ const id = (id) => document.getElementById(id);
 const all = (sel) => document.querySelectorAll(sel);
 
 const elements = {
+	game: id("game"),
 	canvas: id("webgl"),
 	loaderWrap: id("loader-wrap"),
 	loaderPs: all(".loader-p"),
 	loaderPercent: id("loader-percent"),
 	loaderBar: id("loader-bar"),
+	soundBtn: id("sound-btn"),
+	soundBars: all(".sound-bar"),
+	screenBtn: id("screen-btn"),
+	screens: all(".screen"),
 };
+
+const sounds = {
+	ambientMusic: new Audio("/sounds/ambient.mp3"),
+};
+sounds.ambientMusic.loop = true;
+let soundEnabled = true;
 
 const sizes = { width: window.innerWidth, height: window.innerHeight };
 const wait = (ms) => new Promise((res) => setTimeout(res, ms));
@@ -30,7 +41,9 @@ const camera = new THREE.PerspectiveCamera(
 	1,
 	400,
 );
-camera.position.y = 30; //
+const lookTarget = new THREE.Vector3(6, 3, -4);
+camera.position.set(38, 3, 36);
+camera.lookAt(lookTarget);
 scene.add(camera);
 
 const renderer = new THREE.WebGLRenderer({
@@ -70,8 +83,9 @@ scene.add(sun);
 scene.add(new THREE.DirectionalLightHelper(sun, 10));
 scene.add(new THREE.CameraHelper(sun.shadow.camera));
 
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
+//const controls = new OrbitControls(camera, renderer.domElement);
+//controls.enableDamping = true;
+//controls.enabled = false;
 
 const snowCount = 1500;
 const snowArea = 250;
@@ -123,7 +137,6 @@ const gltfLoader = new GLTFLoader(loadingManager);
 
 gltfLoader.load("/models/angrybirds.glb", (gltf) => {
 	const root = gltf.scene.children[0];
-	scene.add(root);
 	root.traverse((obj) => {
 		if (!obj.isMesh) return;
 		if (Array.isArray(obj.material)) {
@@ -142,6 +155,7 @@ gltfLoader.load("/models/angrybirds.glb", (gltf) => {
 			obj.receiveShadow = true;
 		}
 	});
+	scene.add(root);
 });
 
 const displayLoader = (visible) => {
@@ -179,17 +193,36 @@ const runLoader = async () => {
 	elements.loaderWrap.classList.add("remove");
 };
 
-const startExperience = async () => {
-	await runLoader();
-	console.log("START GAME LOGIC!");
+const runIntro = async () => {
+	gsap.to(camera.position, {
+		x: 46,
+		y: 3,
+		z: 0,
+		duration: 3,
+		ease: "power2.inOut",
+	});
+	gsap.to(lookTarget, {
+		x: 6,
+		y: 10,
+		z: 0,
+		duration: 3,
+		ease: "power2.inOut",
+		onUpdate: () => {
+			camera.lookAt(lookTarget);
+		},
+	});
 };
-startExperience();
+
+const runExperience = async () => {
+	await runLoader();
+	await runIntro();
+};
+runExperience();
 
 const clock = new THREE.Clock();
 const loop = () => {
-	const elapsed = clock.getElapsedTime();
-	if (snowMaterial) snowMaterial.uniforms.uTime.value = elapsed;
-	controls.update();
+	if (snowMaterial) snowMaterial.uniforms.uTime.value = clock.getElapsedTime();
+	//controls.update();
 	renderer.render(scene, camera);
 	requestAnimationFrame(loop);
 };
@@ -203,29 +236,30 @@ window.addEventListener("resize", () => {
 	setRenderer();
 });
 
-window.addEventListener("dblclick", () => {
+elements.screenBtn.addEventListener("click", () => {
 	const fullscreenElement =
 		document.fullscreenElement || document.webkitFullscreenElement;
-
-	if (!fullscreenElement) {
-		if (elements.canvas.requestFullscreen) {
-			elements.canvas.requestFullscreen();
-		} else if (elements.canvas.webkitRequestFullscreen) {
-			elements.canvas.webkitRequestFullscreen();
-		}
+	if (fullscreenElement) {
+		document.exitFullscreen?.() || document.webkitExitFullscreen?.();
 	} else {
-		if (document.exitFullscreen) {
-			document.exitFullscreen();
-		} else if (document.webkitExitFullscreen) {
-			document.webkitExitFullscreen();
-		}
+		elements.game.requestFullscreen?.() ||
+			elements.game.webkitRequestFullscreen?.();
 	}
+	elements.screens.forEach((path) => path.classList.toggle("active"));
 });
 
-const gui = new GUI();
+elements.soundBtn.addEventListener("click", () => {
+	soundEnabled = !soundEnabled;
+	soundEnabled ? sounds.ambientMusic.play() : sounds.ambientMusic.pause();
+	elements.soundBars.forEach((bar) => {
+		bar.classList.toggle("paused", !soundEnabled);
+	});
+});
+
+/*const gui = new GUI();
 gui.add(sun.position, "x", -180, 180, 0.1).name("X (°)");
 gui.add(sun.position, "y", -180, 180, 0.1).name("X (°)");
-gui.add(sun.position, "z", -180, 180, 0.1).name("X (°)");
+gui.add(sun.position, "z", -180, 180, 0.1).name("X (°)");*/
 
 /*
 elements.btns.forEach((btn) => {
@@ -236,26 +270,8 @@ elements.btns.forEach((btn) => {
 		}
 	});
 });
-elements.fullscreenBtn.addEventListener("click", () => {
-	if (!document.fullscreenElement) {
-		if (elements.game.requestFullscreen) elements.game.requestFullscreen();
-		else if (elements.game.webkitRequestFullscreen)
-			elements.game.webkitRequestFullscreen();
-	} else {
-		if (document.exitFullscreen) document.exitFullscreen();
-		else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-	}
-	elements.fullscreenBtnPaths.forEach((path) => {
-		path.classList.toggle("active");
-	});
-});
-elements.soundBtn.addEventListener("click", () => {
-	sound = !sound;
-	sound ? currentMusic.play() : currentMusic.pause();
-	elements.soundBars.forEach((bar) => {
-		bar.classList.toggle("paused", !sound);
-	});
-});
+
+
 document.addEventListener("visibilitychange", () => {
 	if (document.hidden) {
 		currentMusic.pause();
@@ -264,14 +280,10 @@ document.addEventListener("visibilitychange", () => {
 	}
 });
 */
-const sounds = {
-	ambientMusic: new Audio("/sounds/ambient.mp3"),
-};
-sounds.ambientMusic.loop = true;
 
 setInterval(() => {
 	const info = renderer.info.render;
 	console.log(
 		`Triangles: ${info.triangles}, Draw Calls: ${info.calls}, Lines: ${info.lines}, Points: ${info.points}`,
 	);
-}, 1000);
+}, 2000);

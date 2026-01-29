@@ -17,6 +17,14 @@ body {
 	text-rendering: geometricPrecision;
 }
 
+button {
+	all: unset;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
 #loader-wrap {
 	position: fixed;
 	inset: 0;
@@ -52,7 +60,7 @@ body {
 
 .loader-p {
 	font-size: 1.2rem;
-	line-height: 1.15;
+	line-height: 1.1;
 	transform: translateY(100%);
 	transition: var(--transition) ease;
 }
@@ -87,12 +95,10 @@ body {
 	transform: scaleX(var(--s, 0));
 }
 
-
-
-#game-overlay {
-	position: absolute;
+#overlay {
+	position: fixed;
 	inset: 0;
-	display: none;
+	z-index: 1;
 }
 
 #controls {
@@ -102,29 +108,24 @@ body {
 	display: flex;
 	align-items: flex-end;
 	gap: 2rem;
-}
-
-.fullscreen {
-	transition: .5s;
-	opacity: 0;
-}
-
-.fullscreen.active {
-	opacity: 1;
+	background-color: rgba(0, 0, 0, 0.15);
+	padding: 10px 2rem;
+	border-radius: 8px;
+	backdrop-filter: blur(4px);
+	-webkit-backdrop-filter: blur(4px);
 }
 
 #sound-btn {
-	display: flex;
 	align-items: flex-end;
 	gap: 4px;
-	transform: translateY(-3px);
-	height: 28px;
+	height: 20px;
+	transform: translateY(-2px);
 }
 
 .sound-bar {
 	width: 2px;
 	height: 8px;
-	background: var(--white);
+	background: #fff;
 	animation: sound 1s infinite;
 }
 
@@ -151,6 +152,15 @@ body {
 	50% {
 		height: 20px;
 	}
+}
+
+.screen {
+	transition: var(--transition);
+	opacity: 0;
+}
+
+.screen.active {
+	opacity: 1;
 }
 
 #play-btn {
