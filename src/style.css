@@ -1,4 +1,6 @@
-* {
+*,
+*::before,
+*::after {
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
@@ -7,14 +9,18 @@
 :root {
 	--transition: 0.5s;
 	--red: #ea002a;
+	--ui-bg: #00000025;
 }
 
+html,
 body {
+	height: 100%;
 	font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
-	overflow: hidden;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	text-rendering: geometricPrecision;
+	text-rendering: optimizeLegibility;
+	user-select: none;
+	overflow: hidden;
 }
 
 button {
@@ -28,16 +34,17 @@ button {
 #loader-wrap {
 	position: fixed;
 	inset: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	transition: var(--transition);
+	display: grid;
+	place-items: center;
 	background-color: #fff;
 	z-index: 2;
+	transition: opacity var(--transition) ease;
+	will-change: opacity;
 }
 
 #loader-wrap.end {
 	opacity: 0;
+	pointer-events: none;
 }
 
 #loader-wrap.remove {
@@ -45,14 +52,13 @@ button {
 }
 
 #loader {
-	width: 400px;
+	width: min(400px, 90vw);
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
 }
 
 #loading {
-	width: 100%;
 	display: flex;
 	justify-content: space-between;
 	overflow: hidden;
@@ -62,7 +68,8 @@ button {
 	font-size: 1.2rem;
 	line-height: 1.1;
 	transform: translateY(100%);
-	transition: var(--transition) ease;
+	transition: transform var(--transition) ease;
+	will-change: transform;
 }
 
 .loader-p.active {
@@ -70,13 +77,16 @@ button {
 }
 
 #loader-bar {
+	position: relative;
 	height: 3px;
 	width: 100%;
 	background-color: #ccc;
-	transition: var(--transition) ease;
-	transform-origin: left;
-	border-radius: 4px;
+	border-radius: 3px;
+	overflow: hidden;
 	transform: scaleX(0);
+	transform-origin: left;
+	transition: transform var(--transition) ease;
+	will-change: transform;
 }
 
 #loader-bar.active {
@@ -86,13 +96,12 @@ button {
 #loader-bar::before {
 	content: "";
 	position: absolute;
-	transform-origin: left;
-	height: inherit;
-	width: 100%;
+	inset: 0;
 	background-color: var(--red);
-	border-radius: inherit;
-	transition: var(--transition) ease;
 	transform: scaleX(var(--s, 0));
+	transform-origin: left;
+	transition: transform var(--transition) ease;
+	will-change: transform;
 }
 
 #overlay {
@@ -103,22 +112,21 @@ button {
 
 #controls {
 	position: absolute;
-	right: 3rem;
-	bottom: 2rem;
+	inset: auto 3rem 2rem auto;
 	display: flex;
 	align-items: flex-end;
 	gap: 2rem;
-	background-color: rgba(0, 0, 0, 0.15);
-	padding: 10px 2rem;
+	padding: 0.625rem 2rem;
+	background-color: var(--ui-bg);
 	border-radius: 8px;
 	backdrop-filter: blur(4px);
 	-webkit-backdrop-filter: blur(4px);
 }
 
 #sound-btn {
+	height: 20px;
 	align-items: flex-end;
 	gap: 4px;
-	height: 20px;
 	transform: translateY(-2px);
 }
 
@@ -126,12 +134,10 @@ button {
 	width: 2px;
 	height: 8px;
 	background: #fff;
-	animation: sound 1s infinite;
 }
 
-.sound-bar.paused {
-	animation: none;
-	height: 8px;
+.sound-bar.active {
+	animation: sound 1s infinite ease-in-out;
 }
 
 .sound-bar:nth-child(2) {
@@ -155,23 +161,34 @@ button {
 }
 
 .screen {
-	transition: var(--transition);
 	opacity: 0;
+	transition: opacity var(--transition) ease;
+	will-change: opacity;
 }
 
 .screen.active {
 	opacity: 1;
 }
 
-#play-btn {
+#cursor-wrap {
 	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	display: flex;
-	align-items: center;
-	gap: 1rem;
-	font-size: 2rem;
+	margin: 0.5rem 0 0 1.75rem;
+	pointer-events: none;
+	overflow: hidden;
+	transition: transform var(--transition) cubic-bezier(0.22, 0.61, 0.36, 1.0);
+	will-change: transform;
+}
+
+#cursor-text {
+	color: #fff;
+	white-space: nowrap;
+	transform: translateY(100%);
+	transition: transform var(--transition) ease;
+	will-change: transform;
+}
+
+#cursor-text.active {
+	transform: translateY(0);
 }
 
 #webgl {
