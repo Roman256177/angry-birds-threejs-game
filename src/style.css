@@ -175,7 +175,7 @@ button {
 	margin: 0.5rem 0 0 1.75rem;
 	pointer-events: none;
 	overflow: hidden;
-	transition: transform var(--transition) cubic-bezier(0.22, 0.61, 0.36, 1.0);
+	transition: transform var(--transition) cubic-bezier(0.2, 0.6, 0.4, 1.0);
 	will-change: transform;
 }
 
@@ -189,6 +189,11 @@ button {
 
 #cursor-text.active {
 	transform: translateY(0);
+}
+
+.icon {
+	width: 1.5rem;
+	height: 1.5rem;
 }
 
 #webgl {

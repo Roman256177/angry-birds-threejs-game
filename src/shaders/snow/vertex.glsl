@@ -2,7 +2,7 @@ uniform float uTime;
 uniform float uHeight;
 
 attribute float aSpeed;
-attribute float aOffset;
+attribute float aWind;
 attribute float aSize;
 
 varying float vHeight;
@@ -12,7 +12,7 @@ void main() {
 
     pos.y = mod(position.y - uTime * aSpeed, uHeight);
 
-    float wind = uTime + aOffset;
+    float wind = uTime + aWind;
     pos.x += sin(wind) * 1.25;
     pos.z += cos(wind) * 1.25;
 

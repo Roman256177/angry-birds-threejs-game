@@ -45,7 +45,7 @@ class Experience {
 		this.sizes = { width: window.innerWidth, height: window.innerHeight };
 		this.transition = 500;
 
-		this.showCursorText = false;
+		this.isCursorTextEnabled = false;
 		this.mouseMoved = false;
 
 		this.scene = new THREE.Scene();
@@ -57,9 +57,9 @@ class Experience {
 			1,
 			450,
 		);
-		this.lookTarget = new THREE.Vector3(2, 4, -6);
+		this.cameraTarget = new THREE.Vector3(2, 4, -6);
 		this.camera.position.set(36, 3, 40);
-		this.camera.lookAt(this.lookTarget);
+		this.camera.lookAt(this.cameraTarget);
 		this.scene.add(this.camera);
 
 		this.renderer = new THREE.WebGLRenderer({
@@ -72,28 +72,33 @@ class Experience {
 		this.renderer.setClearColor(0x9aa8bf);
 		this.setRenderer();
 
-		this.physicsWorld = new CANNON.World({
+		this.world = new CANNON.World({
 			gravity: new CANNON.Vec3(0, -9.82, 0),
 		});
 
 		this.clock = new THREE.Clock();
-		this.loadingManager = new THREE.LoadingManager(() => (this.loaded = true));
+		this.loadingManager = new THREE.LoadingManager(
+			() => (this.isLoaded = true),
+		);
 		this.gltfLoader = new GLTFLoader(this.loadingManager);
 		this.fontLoader = new FontLoader();
-		this.loaded = false;
+		this.isLoaded = false;
 
-		this.snowCount = 1500;
+		this.snowCount = 2000;
 		this.snowArea = 300;
 		this.snowHeight = 100;
 		this.snow = null;
 
 		this.text = null;
+		this.font = this.fontLoader.parse(fontJSON);
 
-		this.game = {
+		this.isPlaying = false;
+
+		this.helper = {
 			birds: [],
 			pigs: [],
 			boxes: [],
-			level01: [],
+			level01: null,
 		};
 	}
 
@@ -135,7 +140,7 @@ class Experience {
 		const geometry = new THREE.BufferGeometry();
 		const positions = new Float32Array(this.snowCount * 3);
 		const speeds = new Float32Array(this.snowCount);
-		const offsets = new Float32Array(this.snowCount);
+		const winds = new Float32Array(this.snowCount);
 		const sizes = new Float32Array(this.snowCount);
 
 		for (let i = 0; i < this.snowCount; i++) {
@@ -143,13 +148,13 @@ class Experience {
 			positions[i * 3 + 1] = Math.random() * this.snowHeight;
 			positions[i * 3 + 2] = (Math.random() - 0.5) * this.snowArea;
 			speeds[i] = 1 + Math.random();
-			offsets[i] = Math.random() * Math.PI * 2;
+			winds[i] = Math.random() * Math.PI * 2;
 			sizes[i] = 1 + Math.random() * 0.5;
 		}
 
 		geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 		geometry.setAttribute("aSpeed", new THREE.BufferAttribute(speeds, 1));
-		geometry.setAttribute("aOffset", new THREE.BufferAttribute(offsets, 1));
+		geometry.setAttribute("aWind", new THREE.BufferAttribute(winds, 1));
 		geometry.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
 
 		const material = new THREE.ShaderMaterial({
@@ -159,8 +164,8 @@ class Experience {
 			},
 			vertexShader: snowVertexShader,
 			fragmentShader: snowFragmentShader,
+			depthWrite: false,
 			transparent: true,
-			blending: THREE.AdditiveBlending,
 		});
 
 		this.snow = new THREE.Points(geometry, material);
@@ -169,10 +174,8 @@ class Experience {
 	}
 
 	setupText(content) {
-		const font = this.fontLoader.parse(fontJSON);
-
 		const geometry = new TextGeometry(content, {
-			font,
+			font: this.font,
 			size: 40,
 			depth: 0,
 			curveSegments: 1,
@@ -200,11 +203,11 @@ class Experience {
 		this.scene.add(this.text);
 	}
 
-	updateText(newText) {
+	changeText(content) {
 		this.scene.remove(this.text);
 		this.text.geometry.dispose();
 		this.text.material.dispose();
-		this.setupText(newText);
+		this.setupText(content);
 	}
 
 	loadModels() {
@@ -212,7 +215,12 @@ class Experience {
 			const root = gltf.scene.children[0];
 			root.traverse((obj) => {
 				if (obj.name === "Level01") {
-					this.game.level01 = [...obj.children];
+					this.helper.level01 = obj;
+					obj.children.forEach((child) => {
+						if (child.name.includes("Bird")) this.helper.birds.push(child);
+						else if (child.name.includes("Pig")) this.helper.pigs.push(child);
+						else if (child.name.includes("Box")) this.helper.boxes.push(child);
+					});
 					obj.remove(...obj.children);
 					return;
 				}
@@ -229,9 +237,9 @@ class Experience {
 				if (obj.name === "Ground") {
 					obj.receiveShadow = true;
 					const groundShape = new CANNON.Plane();
-					const groundBody = new CANNON.Body({ mass: 0, shape: groundShape });
+					const groundBody = new CANNON.Body({ shape: groundShape });
 					groundBody.quaternion.setFromEuler(-Math.PI * 0.5, 0, 0);
-					this.physicsWorld.addBody(groundBody);
+					this.world.addBody(groundBody);
 				} else {
 					obj.castShadow = true;
 					obj.receiveShadow = true;
@@ -244,40 +252,40 @@ class Experience {
 
 	async start() {
 		await this.runLoader();
-		await this.runIntro();
+		this.runIntro();
 	}
 
 	async runLoader() {
-		this.displayLoader(true);
+		this.showLoader(true);
 		await this.wait(1000);
-		this.handleLoaderProgress(0, 32);
+		this.handleLoader(0, 32);
 		await this.wait(1250);
-		this.handleLoaderProgress(32, 67);
-		while (!this.loaded) await this.wait(100);
+		this.handleLoader(32, 67);
+		while (!this.isLoaded) await this.wait(100);
 		await this.wait(1000);
-		this.handleLoaderProgress(67, 100);
+		this.handleLoader(67, 100);
 		await this.wait(1250);
-		this.displayLoader(false);
+		this.showLoader(false);
 		await this.wait(this.transition);
 		this.elements.loaderWrap.classList.add("end");
 		await this.wait(this.transition);
 		this.elements.loaderWrap.classList.add("remove");
 	}
 
-	displayLoader(visible) {
+	showLoader(visible) {
 		this.elements.loaderPs.forEach((p) =>
 			p.classList.toggle("active", visible),
 		);
 		this.elements.loaderBar.classList.toggle("active", visible);
 	}
 
-	handleLoaderProgress(start, end) {
-		this.elements.loaderBar.style.setProperty("--s", (end / 100).toFixed(2));
-		const startTime = performance.now();
+	handleLoader(from, to) {
+		this.elements.loaderBar.style.setProperty("--s", (to / 100).toFixed(2));
+		const start = performance.now();
 		const update = (now) => {
-			const progress = Math.min((now - startTime) / this.transition, 1);
+			const progress = Math.min((now - start) / this.transition, 1);
 			this.elements.loaderPercent.textContent = Math.round(
-				start + (end - start) * progress,
+				from + (to - from) * progress,
 			);
 			if (progress < 1) requestAnimationFrame(update);
 		};
@@ -292,10 +300,11 @@ class Experience {
 		await this.animateCamera(50, 4, 0, 0, 10, 0);
 		await this.showText();
 		if (this.mouseMoved) this.elements.cursorText.classList.add("active");
-		this.showCursorText = true;
+		this.isCursorTextEnabled = true;
 		document.addEventListener(
 			"click",
 			() => {
+				this.isCursorTextEnabled = false;
 				this.elements.cursorText.classList.remove("active");
 				if (!this.isSoundEnabled) this.toggleSound();
 				this.setupLevel01();
@@ -313,13 +322,13 @@ class Experience {
 				duration: 3,
 				ease: "power1.inOut",
 			});
-			gsap.to(this.lookTarget, {
+			gsap.to(this.cameraTarget, {
 				x: x2,
 				y: y2,
 				z: z2,
 				duration: 3,
 				ease: "power1.inOut",
-				onUpdate: () => this.camera.lookAt(this.lookTarget),
+				onUpdate: () => this.camera.lookAt(this.cameraTarget),
 				onComplete: resolve,
 			});
 		});
@@ -345,43 +354,37 @@ class Experience {
 				onComplete: resolve,
 			});
 		});
-		this.updateText("Level01");
+		this.changeText("Level 01");
 		await this.showText();
-		await this.animateCamera(10, 20, -40, -30, 0, 0);
-		await this.addLevelObjects();
-		await this.animateCamera(50, 10, 0, 0, 6, 0);
+		await this.spawnObjects(this.helper.birds, "bird");
+		await this.animateCamera(10, 20, -30, -30, 0, 10);
+		await this.spawnObjects(this.helper.boxes, "box");
+		await this.spawnObjects(this.helper.pigs, "pig");
+		await this.animateCamera(50, 12, 0, 0, 4, 0);
 		this.initGameLoop();
 	}
 
-	async addLevelObjects() {
-		for (const obj of this.game.level01) {
-			this.scene.getObjectByName("Level01").add(obj);
+	async spawnObjects(objs, type) {
+		for (const obj of objs) {
+			obj.position.y += 2;
+			obj.scale.set(0.2, 0.2, 0.2);
+			this.helper.level01.add(obj);
 
-			let type = null;
-			if (obj.name.includes("Bird")) type = "bird";
-			else if (obj.name.includes("Pig")) type = "pig";
-			else if (obj.name.includes("Box")) type = "box";
-			this.playSound(this.sounds.add[type]);
-
-			const box = new THREE.Box3().setFromObject(obj);
-			const size = box.getSize(new THREE.Vector3());
-			const center = box.getCenter(new THREE.Vector3());
-			const shape = new CANNON.Box(
-				new CANNON.Vec3(size.x / 2, size.y / 2, size.z / 2),
-			);
-			const body = new CANNON.Body({
-				mass: type === "pig" || type === "box" ? 1 : 0,
-				position: new CANNON.Vec3(center.x, center.y, center.z),
-				shape,
+			gsap.to(obj.position, {
+				y: obj.position.y - 2,
+				duration: 0.75,
+				ease: "bounce.out",
 			});
-			this.physicsWorld.addBody(body);
+			gsap.to(obj.scale, {
+				x: 1,
+				y: 1,
+				z: 1,
+				duration: 0.75,
+				ease: "back.out(1.5)",
+			});
 
-			obj.userData.physicsBody = body;
-			if (type === "bird") this.game.birds.push(obj);
-			else if (type === "pig") this.game.pigs.push(obj);
-			else if (type === "box") this.game.boxes.push(obj);
-
-			await this.wait(100);
+			this.playSound(this.sounds.add[type]);
+			await this.wait(100 + Math.random() * 100);
 		}
 	}
 
@@ -392,26 +395,6 @@ class Experience {
 	}
 
 	initGameLoop() {}
-
-	updateGameLoop(deltaTime) {
-		/*if (this.isPlaying) {
-			this.physicsWorld.step(1 / 60, deltaTime, 3);
-
-			this.syncPhysicsToMeshes();
-		}*/
-	}
-
-	syncPhysicsToMeshes() {
-		/*[...this.game.birds, ...this.game.pigs, ...this.game.boxes].forEach(
-			(obj) => {
-				if (obj.userData.physicsBody) {
-					const body = obj.userData.physicsBody;
-					obj.position.copy(body.position);
-					obj.quaternion.copy(body.quaternion);
-				}
-			},
-		);*/
-	}
 
 	setupEvents() {
 		window.addEventListener("resize", () => {
@@ -424,11 +407,9 @@ class Experience {
 
 		document.addEventListener("mousemove", (e) => {
 			this.mouseMoved = true;
-			if (this.showCursorText) {
-				this.elements.cursorText.classList.add("active");
-				this.showCursorText = false;
-			}
 			this.elements.cursorWrap.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+			if (this.isCursorTextEnabled)
+				this.elements.cursorText.classList.add("active");
 		});
 
 		document.addEventListener("visibilitychange", () => {
@@ -472,7 +453,20 @@ class Experience {
 		if (this.snow)
 			this.snow.material.uniforms.uTime.value = this.clock.getElapsedTime();
 
-		this.updateGameLoop(this.clock.getDelta());
+		if (this.isPlaying) {
+			this.world.step(1 / 60, this.clock.getDelta(), 3);
+
+			[...this.helper.birds, ...this.helper.pigs, ...this.helper.boxes].forEach(
+				(obj) => {
+					const body = obj.userData.physicsBody;
+					if (body) {
+						obj.position.copy(body.position);
+						obj.quaternion.copy(body.quaternion);
+					}
+				},
+			);
+		}
+
 		this.renderer.render(this.scene, this.camera);
 	}
 }
