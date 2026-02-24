@@ -5,29 +5,31 @@ import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 import fontJSON from "three/examples/fonts/helvetiker_regular.typeface.json";
 import gsap from "gsap";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import snowVertexShader from "./shaders/snow/vertex.glsl";
 import snowFragmentShader from "./shaders/snow/fragment.glsl";
 import textVertexShader from "./shaders/text/vertex.glsl";
 import textFragmentShader from "./shaders/text/fragment.glsl";
 
-class Experience {
+class Game {
 	constructor() {
 		const id = (id) => document.getElementById(id);
 		const all = (sel) => document.querySelectorAll(sel);
 
 		this.elements = {
 			canvas: id("webgl"),
-			loaderWrap: id("loader-wrap"),
-			loaderPs: all(".loader-p"),
-			loaderPercent: id("loader-percent"),
+			loader: id("loader"),
 			loaderBar: id("loader-bar"),
-			controls: id("controls"),
+			loading: id("loading"),
+			pressEnter: id("press-enter"),
+			enterBtn: id("enter-btn"),
 			soundBtn: id("sound-btn"),
 			soundBars: all(".sound-bar"),
-			screenBtn: id("screen-btn"),
-			screens: all(".screen"),
-			cursorWrap: id("cursor-wrap"),
-			cursorText: id("cursor-text"),
+			fsBtn: id("fs-btn"),
+			fsIcons: all(".fs-icon"),
+			zoomBars: all(".zoom-bar"),
+			levelsBtnWrap: id("levels-btn-wrap"),
+			levelsBtn: id("levels-btn"),
 		};
 
 		this.sounds = {
@@ -37,61 +39,73 @@ class Experience {
 				pig: new Audio("/sounds/add/pig.mp3"),
 				box: new Audio("/sounds/add/box.mp3"),
 			},
+			ui: {
+				click: new Audio("/sounds/ui/click.wav"),
+			},
 		};
+
 		this.sounds.ambient.loop = true;
-		this.sounds.ambient.volume = 0.5;
+		this.sounds.ambient.volume = 0.35;
+
 		this.isSoundEnabled = false;
+		this.isLevelsBtnHover = false;
+		this.isParallaxEnabled = false;
+		this.isZoomEnabled = false;
+		this.isLoaded = false;
 
+		this.cursor = { x: 0, y: 0 };
 		this.sizes = { width: window.innerWidth, height: window.innerHeight };
-		this.transition = 500;
-
-		this.isCursorTextEnabled = false;
-		this.mouseMoved = false;
+		this.deltaTime = 0;
+		this.prevTime = 0;
 
 		this.scene = new THREE.Scene();
-		this.scene.fog = new THREE.Fog(0x9aa8bf, 50, 450);
+		this.scene.fog = new THREE.Fog(0x7bb8e8, 10, 400);
 
 		this.camera = new THREE.PerspectiveCamera(
 			45,
 			this.sizes.width / this.sizes.height,
 			1,
-			450,
+			500,
 		);
+		this.cameraTargetBase = null;
 		this.cameraTarget = new THREE.Vector3(2, 4, -6);
 		this.camera.position.set(36, 3, 40);
 		this.camera.lookAt(this.cameraTarget);
 		this.scene.add(this.camera);
+		//
+		this.zoom = 1;
+		this.zoomTarget = 1;
+		this.lastActive = -1;
 
 		this.renderer = new THREE.WebGLRenderer({
 			canvas: this.elements.canvas,
 			alpha: false,
 			antialias: true,
 			powerPreference: "high-performance",
+			outputColorSpace: THREE.SRGBColorSpace,
 		});
 		this.renderer.shadowMap.enabled = true;
-		this.renderer.setClearColor(0x9aa8bf);
+		this.renderer.setClearColor(0x7bb8e8);
 		this.setRenderer();
 
 		this.world = new CANNON.World({
 			gravity: new CANNON.Vec3(0, -9.82, 0),
 		});
 
-		this.clock = new THREE.Clock();
 		this.loadingManager = new THREE.LoadingManager(
 			() => (this.isLoaded = true),
 		);
 		this.gltfLoader = new GLTFLoader(this.loadingManager);
 		this.fontLoader = new FontLoader();
-		this.isLoaded = false;
 
+		this.font = this.fontLoader.parse(fontJSON);
+
+		this.snow = null;
 		this.snowCount = 2000;
 		this.snowArea = 300;
 		this.snowHeight = 100;
-		this.snow = null;
 
-		this.text = null;
-		this.font = this.fontLoader.parse(fontJSON);
-
+		//
 		this.isPlaying = false;
 
 		this.helper = {
@@ -100,6 +114,8 @@ class Experience {
 			boxes: [],
 			level01: null,
 		};
+
+		//this.controls = new OrbitControls(this.camera, this.elements.canvas);
 	}
 
 	setRenderer() {
@@ -110,17 +126,17 @@ class Experience {
 	init() {
 		this.setupLights();
 		this.setupSnow();
-		this.setupText("Angry Birds");
-		this.loadModels();
+		this.setupTitle();
 		this.setupEvents();
-		this.start();
+		this.loadModels();
 		this.loop();
+		this.start();
 	}
 
 	setupLights() {
-		this.scene.add(new THREE.AmbientLight(0xcfd8e3, 0.35));
+		this.scene.add(new THREE.AmbientLight(0x7bb8e8, 0.45));
 
-		const sun = new THREE.DirectionalLight(0xffe3b5, 0.7);
+		const sun = new THREE.DirectionalLight(0xfff5c2, 0.9);
 		sun.position.set(80, 60, -40);
 		sun.castShadow = true;
 		sun.shadow.mapSize.set(1024, 1024);
@@ -147,7 +163,7 @@ class Experience {
 			positions[i * 3 + 0] = (Math.random() - 0.5) * this.snowArea - 50;
 			positions[i * 3 + 1] = Math.random() * this.snowHeight;
 			positions[i * 3 + 2] = (Math.random() - 0.5) * this.snowArea;
-			speeds[i] = 1 + Math.random();
+			speeds[i] = 1.5 + Math.random();
 			winds[i] = Math.random() * Math.PI * 2;
 			sizes[i] = 1 + Math.random() * 0.5;
 		}
@@ -156,7 +172,7 @@ class Experience {
 		geometry.setAttribute("aSpeed", new THREE.BufferAttribute(speeds, 1));
 		geometry.setAttribute("aWind", new THREE.BufferAttribute(winds, 1));
 		geometry.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
-
+		//
 		const material = new THREE.ShaderMaterial({
 			uniforms: {
 				uTime: { value: 0 },
@@ -173,43 +189,52 @@ class Experience {
 		this.scene.add(this.snow);
 	}
 
-	setupText(content) {
-		const geometry = new TextGeometry(content, {
+	setupTitle() {
+		const group = new THREE.Group();
+		group.position.set(-400, 160, 0);
+		group.rotation.y = Math.PI * 0.5;
+		this.scene.add(group);
+
+		const subtitleGeometry = new TextGeometry("Christmas Edition", {
 			font: this.font,
-			size: 40,
+			size: 7,
 			depth: 0,
 			curveSegments: 1,
 		});
-		geometry.computeBoundingBox();
-		geometry.translate(
-			-(geometry.boundingBox.max.x - geometry.boundingBox.min.x) * 0.5,
+		const subtitleMaterial = new THREE.MeshBasicMaterial({
+			color: 0xffffff,
+			fog: false,
+		});
+		const subtitleMesh = new THREE.Mesh(subtitleGeometry, subtitleMaterial);
+		subtitleMesh.position.set(-115, 40, 0);
+		group.add(subtitleMesh);
+
+		const titleGeometry = new TextGeometry("Angry Birds", {
+			font: this.font,
+			size: 45,
+			depth: 0,
+			curveSegments: 1,
+		});
+		titleGeometry.computeBoundingBox();
+		titleGeometry.translate(
+			-(titleGeometry.boundingBox.max.x - titleGeometry.boundingBox.min.x) *
+				0.5,
 			0,
 			0,
 		);
-
-		const material = new THREE.ShaderMaterial({
+		//
+		const titleMaterial = new THREE.ShaderMaterial({
 			uniforms: {
-				uMinY: { value: geometry.boundingBox.min.y },
-				uMaxY: { value: geometry.boundingBox.max.y },
+				uMinY: { value: titleGeometry.boundingBox.min.y },
+				uMaxY: { value: titleGeometry.boundingBox.max.y },
 			},
 			vertexShader: textVertexShader,
 			fragmentShader: textFragmentShader,
 			transparent: true,
 		});
-
-		this.text = new THREE.Mesh(geometry, material);
-		this.text.position.set(-360, 60, 0);
-		this.text.rotation.y = Math.PI * 0.5;
-		this.scene.add(this.text);
+		group.add(new THREE.Mesh(titleGeometry, titleMaterial));
 	}
-
-	changeText(content) {
-		this.scene.remove(this.text);
-		this.text.geometry.dispose();
-		this.text.material.dispose();
-		this.setupText(content);
-	}
-
+	//
 	loadModels() {
 		this.gltfLoader.load("/models/angrybirds.glb", (gltf) => {
 			const root = gltf.scene.children[0];
@@ -251,66 +276,45 @@ class Experience {
 	}
 
 	async start() {
-		await this.runLoader();
-		this.runIntro();
-	}
-
-	async runLoader() {
-		this.showLoader(true);
+		this.elements.loaderBar.classList.add("active");
+		this.elements.loading.classList.add("active");
+		await this.wait(500);
+		this.elements.loaderBar.style.setProperty("--s", 0.3);
+		await this.wait(1500);
+		this.elements.loaderBar.style.setProperty("--s", 0.6);
+		while (!this.isLoaded) await this.wait(50);
+		await this.wait(1500);
+		this.elements.loaderBar.style.setProperty("--s", 1);
+		this.elements.loading.classList.add("loaded");
 		await this.wait(1000);
-		this.handleLoader(0, 32);
-		await this.wait(1250);
-		this.handleLoader(32, 67);
-		while (!this.isLoaded) await this.wait(100);
-		await this.wait(1000);
-		this.handleLoader(67, 100);
-		await this.wait(1250);
-		this.showLoader(false);
-		await this.wait(this.transition);
-		this.elements.loaderWrap.classList.add("end");
-		await this.wait(this.transition);
-		this.elements.loaderWrap.classList.add("remove");
-	}
-
-	showLoader(visible) {
-		this.elements.loaderPs.forEach((p) =>
-			p.classList.toggle("active", visible),
-		);
-		this.elements.loaderBar.classList.toggle("active", visible);
-	}
-
-	handleLoader(from, to) {
-		this.elements.loaderBar.style.setProperty("--s", (to / 100).toFixed(2));
-		const start = performance.now();
-		const update = (now) => {
-			const progress = Math.min((now - start) / this.transition, 1);
-			this.elements.loaderPercent.textContent = Math.round(
-				from + (to - from) * progress,
+		this.elements.pressEnter.classList.add("active");
+		await new Promise((resolve) => {
+			const finish = () => {
+				this.toggleSound();
+				resolve();
+			};
+			document.addEventListener(
+				"keydown",
+				(e) => {
+					if (e.code === "Enter") finish();
+				},
+				{ once: true },
 			);
-			if (progress < 1) requestAnimationFrame(update);
-		};
-		requestAnimationFrame(update);
+			this.elements.enterBtn.addEventListener("click", finish, {
+				once: true,
+			});
+		});
+		this.elements.loader.classList.add("end");
+		this.elements.canvas.classList.add("active");
+		await this.animateCamera(60, 6, 0, 0, 12, 0);
+		this.elements.levelsBtn.classList.add("active");
+		this.enableParallax(true);
+		this.isZoomEnabled = true;
+		this.elements.loader.classList.add("remove");
 	}
 
 	wait(ms) {
 		return new Promise((resolve) => setTimeout(resolve, ms));
-	}
-
-	async runIntro() {
-		await this.animateCamera(50, 4, 0, 0, 10, 0);
-		await this.showText();
-		if (this.mouseMoved) this.elements.cursorText.classList.add("active");
-		this.isCursorTextEnabled = true;
-		document.addEventListener(
-			"click",
-			() => {
-				this.isCursorTextEnabled = false;
-				this.elements.cursorText.classList.remove("active");
-				if (!this.isSoundEnabled) this.toggleSound();
-				this.setupLevel01();
-			},
-			{ once: true },
-		);
 	}
 
 	animateCamera(x1, y1, z1, x2, y2, z2) {
@@ -334,15 +338,9 @@ class Experience {
 		});
 	}
 
-	showText() {
-		return new Promise((resolve) => {
-			gsap.to(this.text.position, {
-				y: 150,
-				duration: 1,
-				ease: "power1.inOut",
-				onComplete: resolve,
-			});
-		});
+	enableParallax(bool) {
+		this.isParallaxEnabled = bool;
+		this.cameraTargetBase = this.cameraTarget.clone();
 	}
 
 	async setupLevel01() {
@@ -404,12 +402,26 @@ class Experience {
 			this.camera.updateProjectionMatrix();
 			this.setRenderer();
 		});
-
+		//
 		document.addEventListener("mousemove", (e) => {
-			this.mouseMoved = true;
-			this.elements.cursorWrap.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
-			if (this.isCursorTextEnabled)
-				this.elements.cursorText.classList.add("active");
+			if (!this.isParallaxEnabled) return;
+			this.cursor.x = e.clientX / this.sizes.width - 0.5;
+			this.cursor.y = e.clientY / this.sizes.height - 0.5;
+
+			if (!this.isLevelsBtnHover) return;
+			const triggerRadius = 75;
+			const rect = this.elements.levelsBtnWrap.getBoundingClientRect();
+			const centerX = rect.left + rect.width / 2;
+			const centerY = rect.top + rect.height / 2;
+			const dx = e.clientX - centerX;
+			const dy = e.clientY - centerY;
+			const distance = Math.sqrt(dx * dx + dy * dy);
+			if (distance < triggerRadius) {
+				const force = 1 - distance / triggerRadius;
+				const moveX = dx * force * 1.5;
+				const moveY = dy * force * 1.5;
+				this.elements.levelsBtn.style.transform = `translate(${moveX}px, ${moveY}px)`;
+			}
 		});
 
 		document.addEventListener("visibilitychange", () => {
@@ -420,21 +432,39 @@ class Experience {
 			}
 		});
 
-		this.elements.screenBtn.addEventListener("click", () => {
-			const fs = document.fullscreenElement || document.webkitFullscreenElement;
-			if (fs) {
+		this.elements.fsBtn.addEventListener("click", () => {
+			if (document.fullscreenElement || document.webkitFullscreenElement) {
 				document.exitFullscreen?.() || document.webkitExitFullscreen?.();
 			} else {
-				const el = document.documentElement;
-				el.requestFullscreen?.() || el.webkitRequestFullscreen?.();
+				document.documentElement.requestFullscreen?.() ||
+					document.documentElement.webkitRequestFullscreen?.();
 			}
-			this.elements.screens.forEach((el) => el.classList.toggle("active"));
+			this.elements.fsIcons.forEach((el) => el.classList.toggle("active"));
 		});
 
 		this.elements.soundBtn.addEventListener(
 			"click",
 			this.toggleSound.bind(this),
 		);
+		//
+		window.addEventListener("wheel", (e) => {
+			if (!this.isZoomEnabled) return;
+			this.zoomTarget += e.deltaY * -0.001;
+			this.zoomTarget = Math.min(Math.max(this.zoomTarget, 1), 4);
+		});
+		//
+		[this.elements.fsBtn, this.elements.soundBtn].forEach((btn) => {
+			btn.addEventListener("click", () => this.playSound(this.sounds.ui.click));
+		});
+
+		this.elements.levelsBtnWrap.addEventListener("mouseenter", () => {
+			this.isLevelsBtnHover = true;
+		});
+		//
+		this.elements.levelsBtnWrap.addEventListener("mouseleave", () => {
+			this.isLevelsBtnHover = false;
+			this.elements.levelsBtn.style.transform = "translate(0, 0)";
+		});
 	}
 
 	toggleSound() {
@@ -447,15 +477,41 @@ class Experience {
 		);
 	}
 
-	loop() {
+	loop(time) {
 		requestAnimationFrame(this.loop.bind(this));
+		//
+		this.deltaTime = (time - this.prevTime) - 1000;
+		this.prevTime = time;
+		//
+		if (this.isParallaxEnabled) {
+			const targetZ =
+				this.cameraTargetBase.z -
+				this.cursor.x * 10 * (1 + ((this.zoom - 1) / 3) * 2);
+			const targetY =
+				this.cameraTargetBase.y -
+				this.cursor.y * 5 * (1 + ((this.zoom - 1) / 3) * 4);
+			this.cameraTarget.z += (targetZ - this.cameraTarget.z) * 5 * delta;
+			this.cameraTarget.y += (targetY - this.cameraTarget.y) * 5 * delta;
+			this.camera.lookAt(this.cameraTarget);
+		}
+		//
+		if (this.isZoomEnabled) {
+			this.zoom += (this.zoomTarget - this.zoom) * 5 * delta;
+			this.camera.zoom = this.zoom;
+			this.camera.updateProjectionMatrix();
+			const active = Math.round(((this.zoom - 1) / 3) * 11);
+			if (active !== this.lastActive) {
+				this.elements.zoomBars.forEach((z, i) => {
+					z.classList.toggle("active", i < active);
+				});
+				this.lastActive = active;
+			}
+		}
 
-		if (this.snow)
-			this.snow.material.uniforms.uTime.value = this.clock.getElapsedTime();
-
+		if (this.snow) this.snow.material.uniforms.uTime.value = time;
+		//
 		if (this.isPlaying) {
-			this.world.step(1 / 60, this.clock.getDelta(), 3);
-
+			this.world.step(1 / 60, delta, 3);
 			[...this.helper.birds, ...this.helper.pigs, ...this.helper.boxes].forEach(
 				(obj) => {
 					const body = obj.userData.physicsBody;
@@ -468,8 +524,10 @@ class Experience {
 		}
 
 		this.renderer.render(this.scene, this.camera);
+
+		//this.controls.update();
 	}
 }
 
-const experience = new Experience();
-experience.init();
+const game = new Game();
+game.init();

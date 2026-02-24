@@ -6,20 +6,28 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<meta name="description" content="WebGL game inspired by Angry Birds." />
 	<meta name="robots" content="index, follow" />
-	<title>Angry Birds</title>
-	<link rel="stylesheet" href="./style.css" />
 	<link rel="icon" type="image/x-icon" href="/icons/favicon.ico">
+	<link rel="stylesheet" href="./style.css" />
+	<title>Angry Birds | WebGL game</title>
+	<script type="module" src="./main.js" defer></script>
 </head>
 
 <body>
-	<div id="loader-wrap">
-		<div id="loader">
-			<div id="loading">
-				<p class="loader-p">Loading</p>
-				<p id="loader-percent" class="loader-p">0</p>
+	<svg style="display:none;">
+		<symbol id="lock-icon" viewBox="0 0 24 24" fill="none">
+			<path
+				d="M17 10V8C17 5.23858 14.7614 3 12 3C9.23858 3 7 5.23858 7 8V10M12 14.5V16.5M8.8 21H15.2C16.8802 21 17.7202 21 18.362 20.673C18.9265 20.3854 19.3854 19.9265 19.673 19.362C20 18.7202 20 17.8802 20 16.2V14.8C20 13.1198 20 12.2798 19.673 11.638C19.3854 11.0735 18.9265 10.6146 18.362 10.327C17.7202 10 16.8802 10 15.2 10H8.8C7.11984 10 6.27976 10 5.63803 10.327C5.07354 10.6146 4.6146 11.0735 4.32698 11.638C4 12.2798 4 13.1198 4 14.8V16.2C4 17.8802 4 18.7202 4.32698 19.362C4.6146 19.9265 5.07354 20.3854 5.63803 20.673C6.27976 21 7.11984 21 8.8 21Z"
+				stroke="#ccc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+		</symbol>
+	</svg>
+	<div id="loader">
+		<div id="loader-wrap">
+			<div id="loading-wrap">
+				<p id="loading">Loading</p>
 			</div>
 			<div id="loader-bar" role="progressbar"></div>
 		</div>
+		<p id="press-enter">Press <span id="enter-btn" type="button">Enter</span> to start.</p>
 	</div>
 	<main>
 		<div id="overlay">
@@ -30,18 +38,104 @@
 					<span class="sound-bar"></span>
 					<span class="sound-bar"></span>
 				</button>
-				<button id="screen-btn" type="button">
-					<svg width="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+				<button id="fs-btn" type="button">
+					<svg width="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.75"
 						stroke-linecap="round" stroke-linejoin="round">
-						<path class="screen active"
+						<path class="fs-icon active"
 							d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-						<path class="screen"
+						<path class="fs-icon"
 							d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
 					</svg>
 				</button>
 			</div>
-			<div id="cursor-wrap">
-				<p id="cursor-text">Click to start</p>
+			<div id="zoom-wrap">
+				<span class="zoom-bar"></span>
+				<span class="zoom-bar"></span>
+				<span class="zoom-bar"></span>
+				<span class="zoom-bar"></span>
+				<span class="zoom-bar"></span>
+				<span class="zoom-bar"></span>
+				<span class="zoom-bar"></span>
+				<span class="zoom-bar"></span>
+				<span class="zoom-bar"></span>
+				<span class="zoom-bar"></span>
+				<span class="zoom-bar"></span>
+			</div>
+			<div id="levels-btn-wrap">
+				<button id="levels-btn" type="button">
+					<svg width="28" viewBox="0 0 24 24" fill="none">
+						<path
+							d="M8.4 3H4.6C4.03995 3 3.75992 3 3.54601 3.10899C3.35785 3.20487 3.20487 3.35785 3.10899 3.54601C3 3.75992 3 4.03995 3 4.6V8.4C3 8.96005 3 9.24008 3.10899 9.45399C3.20487 9.64215 3.35785 9.79513 3.54601 9.89101C3.75992 10 4.03995 10 4.6 10H8.4C8.96005 10 9.24008 10 9.45399 9.89101C9.64215 9.79513 9.79513 9.64215 9.89101 9.45399C10 9.24008 10 8.96005 10 8.4V4.6C10 4.03995 10 3.75992 9.89101 3.54601C9.79513 3.35785 9.64215 3.20487 9.45399 3.10899C9.24008 3 8.96005 3 8.4 3Z M19.4 3H15.6C15.0399 3 14.7599 3 14.546 3.10899C14.3578 3.20487 14.2049 3.35785 14.109 3.54601C14 3.75992 14 4.03995 14 4.6V8.4C14 8.96005 14 9.24008 14.109 9.45399C14.2049 9.64215 14.3578 9.79513 14.546 9.89101C14.7599 10 15.0399 10 15.6 10H19.4C19.9601 10 20.2401 10 20.454 9.89101C20.6422 9.79513 20.7951 9.64215 20.891 9.45399C21 9.24008 21 8.96005 21 8.4V4.6C21 4.03995 21 3.75992 20.891 3.54601C20.7951 3.35785 20.6422 3.20487 20.454 3.10899C20.2401 3 19.9601 3 19.4 3Z M19.4 14H15.6C15.0399 14 14.7599 14 14.546 14.109C14.3578 14.2049 14.2049 14.3578 14.109 14.546C14 14.7599 14 15.0399 14 15.6V19.4C14 19.9601 14 20.2401 14.109 20.454C14.2049 20.6422 14.3578 20.7951 14.546 20.891C14.7599 21 15.0399 21 15.6 21H19.4C19.9601 21 20.2401 21 20.454 20.891C20.6422 20.7951 20.7951 20.6422 20.891 20.454C21 20.2401 21 19.9601 21 19.4V15.6C21 15.0399 21 14.7599 20.891 14.546C20.7951 14.3578 20.6422 14.2049 20.454 14.109C20.2401 14 19.9601 14 19.4 14Z M8.4 14H4.6C4.03995 14 3.75992 14 3.54601 14.109C3.35785 14.2049 3.20487 14.3578 3.10899 14.546C3 14.7599 3 15.0399 3 15.6V19.4C3 19.9601 3 20.2401 3.10899 20.454C3.20487 20.6422 3.35785 20.7951 3.54601 20.891C3.75992 21 4.03995 21 4.6 21H8.4C8.96005 21 9.24008 21 9.45399 20.891C9.64215 20.7951 9.79513 20.6422 9.89101 20.454C10 20.2401 10 19.9601 10 19.4V15.6C10 15.0399 10 14.7599 9.89101 14.546C9.79513 14.3578 9.64215 14.2049 9.45399 14.109C9.24008 14 8.96005 14 8.4 14Z"
+							stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+					</svg>
+				</button>
+			</div>
+			<div id="levels">
+				<div id="levels-top">
+					<h3 id="select-level">Select level</h3>
+					<button type="button">
+						<svg width="32" viewBox="0 0 24 24" fill="none">
+							<path d="M18 6L6 18M6 6L18 18" stroke="#fff" stroke-width="1.5" stroke-linecap="round"
+								stroke-linejoin="round" />
+						</svg>
+					</button>
+				</div>
+				<div id="levels-grid">
+					<button class="level unlocked" type="button">
+						<p>01</p>
+						<svg width="100%" height="100%" viewBox="0 0 24 24" fill="none"
+							xmlns="http://www.w3.org/2000/svg">
+							<path
+								d="M11.2827 3.45332C11.5131 2.98638 11.6284 2.75291 11.7848 2.67831C11.9209 2.61341 12.0791 2.61341 12.2152 2.67831C12.3717 2.75291 12.4869 2.98638 12.7174 3.45332L14.9041 7.88328C14.9721 8.02113 15.0061 8.09006 15.0558 8.14358C15.0999 8.19096 15.1527 8.22935 15.2113 8.25662C15.2776 8.28742 15.3536 8.29854 15.5057 8.32077L20.397 9.03571C20.9121 9.11099 21.1696 9.14863 21.2888 9.27444C21.3925 9.38389 21.4412 9.5343 21.4215 9.68377C21.3988 9.85558 21.2124 10.0372 20.8395 10.4004L17.3014 13.8464C17.1912 13.9538 17.136 14.0076 17.1004 14.0715C17.0689 14.128 17.0487 14.1902 17.0409 14.2545C17.0321 14.3271 17.0451 14.403 17.0711 14.5547L17.906 19.4221C17.994 19.9355 18.038 20.1922 17.9553 20.3445C17.8833 20.477 17.7554 20.57 17.6071 20.5975C17.4366 20.6291 17.2061 20.5078 16.7451 20.2654L12.3724 17.9658C12.2361 17.8942 12.168 17.8584 12.0962 17.8443C12.0327 17.8318 11.9673 17.8318 11.9038 17.8443C11.832 17.8584 11.7639 17.8942 11.6277 17.9658L7.25492 20.2654C6.79392 20.5078 6.56341 20.6291 6.39297 20.5975C6.24468 20.57 6.11672 20.477 6.04474 20.3445C5.962 20.1922 6.00603 19.9355 6.09407 19.4221L6.92889 14.5547C6.95491 14.403 6.96793 14.3271 6.95912 14.2545C6.95132 14.1902 6.93111 14.128 6.89961 14.0715C6.86402 14.0076 6.80888 13.9538 6.69859 13.8464L3.16056 10.4004C2.78766 10.0372 2.60121 9.85558 2.57853 9.68377C2.55879 9.5343 2.60755 9.38389 2.71125 9.27444C2.83044 9.14863 3.08797 9.11099 3.60304 9.03571L8.49431 8.32077C8.64642 8.29854 8.72248 8.28742 8.78872 8.25662C8.84736 8.22935 8.90016 8.19096 8.94419 8.14358C8.99391 8.09006 9.02793 8.02113 9.09597 7.88328L11.2827 3.45332Z"
+								stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+						</svg>
+					</button>
+					<button class="level" type="button">
+						<svg width="32" height="32">
+							<use href="#lock-icon"></use>
+						</svg>
+					</button>
+					<div class="level">
+						<svg width="32" height="32">
+							<use href="#lock-icon"></use>
+						</svg>
+					</div>
+					<div class="level">
+						<svg width="32" height="32">
+							<use href="#lock-icon"></use>
+						</svg>
+					</div>
+					<div class="level">
+						<svg width="32" height="32">
+							<use href="#lock-icon"></use>
+						</svg>
+					</div>
+					<div class="level">
+						<svg width="32" height="32">
+							<use href="#lock-icon"></use>
+						</svg>
+					</div>
+					<div class="level">
+						<svg width="32" height="32">
+							<use href="#lock-icon"></use>
+						</svg>
+					</div>
+					<div class="level">
+						<svg width="32" height="32">
+							<use href="#lock-icon"></use>
+						</svg>
+					</div>
+					<div class="level">
+						<svg width="32" height="32">
+							<use href="#lock-icon"></use>
+						</svg>
+					</div>
+					<div class="level">
+						<svg width="32" height="32">
+							<use href="#lock-icon"></use>
+						</svg>
+					</div>
+				</div>
 			</div>
 			<div id="info">
 				<div>
@@ -59,7 +153,6 @@
 		</div>
 		<canvas id="webgl"></canvas>
 	</main>
-	<script type="module" src="./main.js" defer></script>
 </body>
 
 </html>

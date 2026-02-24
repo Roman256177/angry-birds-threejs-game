@@ -1,91 +1,99 @@
 *,
-*::before,
-*::after {
+::before,
+::after {
+	box-sizing: border-box;
 	margin: 0;
 	padding: 0;
-	box-sizing: border-box;
 }
 
 :root {
-	--transition: 0.5s;
+	--gap: 2rem;
+	--gray: #ccc;
 	--red: #ea002a;
-	--ui-bg: #00000025;
+	--transition: .5s;
+	--transition-hover: .35s;
 }
 
 html,
 body {
-	height: 100%;
-	font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
-	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+	-webkit-font-smoothing: antialiased;
+	font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+	overflow: hidden;
 	text-rendering: optimizeLegibility;
 	user-select: none;
-	overflow: hidden;
 }
 
 button {
+	align-items: center;
 	all: unset;
 	cursor: pointer;
 	display: flex;
-	align-items: center;
 	justify-content: center;
 }
 
-#loader-wrap {
-	position: fixed;
-	inset: 0;
-	display: grid;
-	place-items: center;
+#loader {
+	align-items: center;
 	background-color: #fff;
-	z-index: 2;
-	transition: opacity var(--transition) ease;
-	will-change: opacity;
+	clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+	display: flex;
+	inset: 0;
+	justify-content: center;
+	position: fixed;
+	transition: clip-path .75s ease-in-out;
+	will-change: clip-path;
+	z-index: 9999;
 }
 
-#loader-wrap.end {
-	opacity: 0;
-	pointer-events: none;
+#loader.end {
+	clip-path: polygon(0 105%, 100% 120%, 100% 100%, 0 100%);
 }
 
-#loader-wrap.remove {
+#loader.remove {
 	display: none;
 }
 
-#loader {
-	width: min(400px, 90vw);
+#loader-wrap {
+	align-items: center;
 	display: flex;
-	flex-direction: column;
-	gap: 8px;
+	gap: var(--gap);
+	justify-content: center;
 }
 
-#loading {
-	display: flex;
-	justify-content: space-between;
+#loading-wrap {
 	overflow: hidden;
 }
 
-.loader-p {
-	font-size: 1.2rem;
-	line-height: 1.1;
+#loading {
+	position: relative;
 	transform: translateY(100%);
 	transition: transform var(--transition) ease;
 	will-change: transform;
 }
 
-.loader-p.active {
+#loading.active {
 	transform: translateY(0);
 }
 
+#loading::before {
+	content: "Loaded";
+	position: absolute;
+	transform: translateY(100%);
+}
+
+#loading.loaded {
+	transform: translateY(-100%);
+}
+
 #loader-bar {
+	background-color: var(--gray);
+	border-radius: 2px;
+	height: 2px;
 	position: relative;
-	height: 3px;
-	width: 100%;
-	background-color: #ccc;
-	border-radius: 3px;
-	overflow: hidden;
 	transform: scaleX(0);
 	transform-origin: left;
 	transition: transform var(--transition) ease;
+	width: 400px;
 	will-change: transform;
 }
 
@@ -94,46 +102,67 @@ button {
 }
 
 #loader-bar::before {
-	content: "";
-	position: absolute;
-	inset: 0;
 	background-color: var(--red);
+	content: "";
+	inset: 0;
+	position: absolute;
 	transform: scaleX(var(--s, 0));
 	transform-origin: left;
 	transition: transform var(--transition) ease;
 	will-change: transform;
 }
 
+#press-enter {
+	bottom: 10vh;
+	opacity: 0;
+	pointer-events: none;
+	position: absolute;
+	transform: translateY(1rem);
+	transition: opacity var(--transition) ease, transform var(--transition) ease;
+	will-change: opacity, transform;
+}
+
+#enter-btn {
+	border: 1px solid var(--gray);
+	border-radius: 4px;
+	cursor: pointer;
+	margin: 0 8px;
+	padding: 4px 8px;
+	transition: border-color var(--transition-hover) ease;
+	will-change: border-color;
+}
+
+#enter-btn:hover {
+	border-color: #999;
+}
+
 #overlay {
-	position: fixed;
 	inset: 0;
+	position: fixed;
 	z-index: 1;
 }
 
 #controls {
-	position: absolute;
-	inset: auto 3rem 2rem auto;
-	display: flex;
 	align-items: flex-end;
-	gap: 2rem;
-	padding: 0.625rem 2rem;
-	background-color: var(--ui-bg);
-	border-radius: 8px;
-	backdrop-filter: blur(4px);
-	-webkit-backdrop-filter: blur(4px);
+	bottom: var(--gap);
+	display: flex;
+	gap: var(--gap);
+	position: absolute;
+	right: var(--gap);
 }
 
 #sound-btn {
-	height: 20px;
 	align-items: flex-end;
 	gap: 4px;
-	transform: translateY(-2px);
+	height: 1.5rem;
+	transform: translateY(-3px);
 }
 
 .sound-bar {
-	width: 2px;
-	height: 8px;
 	background: #fff;
+	border-radius: 2px;
+	height: 6px;
+	width: 2px;
 }
 
 .sound-bar.active {
@@ -152,52 +181,150 @@ button {
 
 	0%,
 	100% {
-		height: 8px;
+		height: 6px;
 	}
 
 	50% {
-		height: 20px;
+		height: 22px;
 	}
 }
 
-.screen {
+.fs-icon {
 	opacity: 0;
 	transition: opacity var(--transition) ease;
 	will-change: opacity;
 }
 
-.screen.active {
-	opacity: 1;
-}
-
-#cursor-wrap {
+#zoom-wrap {
+	align-items: center;
+	display: flex;
+	flex-direction: column-reverse;
+	gap: 1rem;
 	position: absolute;
-	margin: 0.5rem 0 0 1.75rem;
+	right: var(--gap);
+	top: 50%;
+	transform: translateY(-50%);
+}
+
+.zoom-bar {
+	background-color: #ffffff50;
+	border-radius: 2px;
+	height: 2px;
+	transition: background-color var(--transition) ease;
+	width: 1rem;
+	will-change: background-color;
+}
+
+.zoom-bar:nth-of-type(odd) {
+	width: 1.5rem;
+}
+
+.zoom-bar.active {
+	background-color: #fff;
+}
+
+#levels-btn-wrap {
+	align-items: center;
+	border-radius: 50%;
+	bottom: var(--gap);
+	display: flex;
+	height: 150px;
+	justify-content: center;
+	left: 50%;
+	position: absolute;
+	transform: translate(-50%, calc(50% - 25px));
+	width: 150px;
+}
+
+#levels-btn {
+	background-color: #fff;
+	border-radius: 50%;
+	height: 50px;
+	opacity: 0;
 	pointer-events: none;
-	overflow: hidden;
-	transition: transform var(--transition) cubic-bezier(0.2, 0.6, 0.4, 1.0);
-	will-change: transform;
+	transform: translateY(1rem);
+	transition: transform var(--transition) ease, opacity var(--transition) ease;
+	width: 50px;
+	will-change: opacity, transform;
 }
 
-#cursor-text {
-	color: #fff;
-	white-space: nowrap;
-	transform: translateY(100%);
-	transition: transform var(--transition) ease;
-	will-change: transform;
-}
-
-#cursor-text.active {
+#levels-btn.active,
+#press-enter.active {
+	opacity: 1;
+	pointer-events: auto;
 	transform: translateY(0);
 }
 
+#levels {
+	backdrop-filter: blur(6px);
+	background-color: #00000050;
+	border-radius: 1rem;
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap);
+	left: 50%;
+	opacity: 0;
+	padding: var(--gap);
+	position: absolute;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	transform: translateY(1rem);
+	transition: transform var(--transition) ease, opacity var(--transition) ease;
+	will-change: transform, opacity;
+}
+
+#levels-top {
+	align-items: center;
+	color: #fff;
+	display: flex;
+	justify-content: space-between;
+}
+
+#select-level {
+	font-size: 2rem;
+}
+
+#levels-grid {
+	display: grid;
+	gap: var(--gap);
+	grid-template-columns: repeat(5, 1fr);
+	grid-template-rows: repeat(2, 1fr);
+}
+
+.level {
+	border: 1px solid var(--gray);
+	border-radius: 50%;
+	color: #fff;
+	cursor: not-allowed;
+	font-size: 2rem;
+	height: 4rem;
+	width: 4rem;
+}
+
+.level.unlocked {
+	border-color: #fff;
+	cursor: pointer;
+}
+
+#info {
+	display: none;
+}
+
 .icon {
-	width: 1.5rem;
 	height: 1.5rem;
+	width: 1.5rem;
 }
 
 #webgl {
-	position: fixed;
 	inset: 0;
+	opacity: 0;
 	outline: none;
+	position: fixed;
+	transition: opacity .75s;
+	will-change: opacity;
+}
+
+.fs-icon.active,
+#webgl.active {
+	opacity: 1;
 }
