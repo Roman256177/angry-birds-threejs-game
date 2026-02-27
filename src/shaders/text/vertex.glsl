@@ -1,8 +1,8 @@
+#define minY -13.463
+#define maxY 44.571
 varying float vY;
-uniform float uMinY;
-uniform float uMaxY;
 
 void main() {
-    vY = (position.y - uMinY) / (uMaxY - uMinY);
+    vY = (position.y - minY) / (maxY - minY);
     gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0);
 }

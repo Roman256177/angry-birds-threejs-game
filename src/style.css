@@ -8,10 +8,8 @@
 
 :root {
 	--gap: 2rem;
-	--gray: #ccc;
 	--red: #ea002a;
 	--transition: .5s;
-	--transition-hover: .35s;
 }
 
 html,
@@ -26,7 +24,8 @@ body {
 
 button {
 	align-items: center;
-	all: unset;
+	background: none;
+	border: none;
 	cursor: pointer;
 	display: flex;
 	justify-content: center;
@@ -35,18 +34,11 @@ button {
 #loader {
 	align-items: center;
 	background-color: #fff;
-	clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
 	display: flex;
 	inset: 0;
 	justify-content: center;
 	position: fixed;
-	transition: clip-path .75s ease-in-out;
-	will-change: clip-path;
 	z-index: 9999;
-}
-
-#loader.end {
-	clip-path: polygon(0 105%, 100% 120%, 100% 100%, 0 100%);
 }
 
 #loader.remove {
@@ -60,40 +52,36 @@ button {
 	justify-content: center;
 }
 
-#loading-wrap {
-	overflow: hidden;
-}
-
-#loading {
+#load-wrap {
+	height: 19px;
 	position: relative;
-	transform: translateY(100%);
-	transition: transform var(--transition) ease;
-	will-change: transform;
+	width: 7ch;
 }
 
-#loading.active {
-	transform: translateY(0);
-}
-
-#loading::before {
-	content: "Loaded";
+#loading,
+#loaded {
 	position: absolute;
-	transform: translateY(100%);
+	right: 0;
+	top: 50%;
+	transform: translateY(-50%);
 }
 
-#loading.loaded {
-	transform: translateY(-100%);
+#loading span,
+#loaded span {
+	opacity: 0;
+	transition: opacity var(--transition) ease;
+	will-change: opacity;
 }
 
 #loader-bar {
-	background-color: var(--gray);
+	background-color: #ccc;
 	border-radius: 2px;
 	height: 2px;
 	position: relative;
 	transform: scaleX(0);
 	transform-origin: left;
 	transition: transform var(--transition) ease;
-	width: 400px;
+	width: min(400px, 80vw);
 	will-change: transform;
 }
 
@@ -103,17 +91,22 @@ button {
 
 #loader-bar::before {
 	background-color: var(--red);
+	border-radius: inherit;
 	content: "";
 	inset: 0;
 	position: absolute;
 	transform: scaleX(var(--s, 0));
-	transform-origin: left;
-	transition: transform var(--transition) ease;
-	will-change: transform;
+	transform-origin: inherit;
+	transition: inherit;
+	will-change: inherit;
 }
 
 #press-enter {
+	align-items: center;
 	bottom: 10vh;
+	display: flex;
+	gap: 8px;
+	justify-content: center;
 	opacity: 0;
 	pointer-events: none;
 	position: absolute;
@@ -122,18 +115,33 @@ button {
 	will-change: opacity, transform;
 }
 
-#enter-btn {
-	border: 1px solid var(--gray);
-	border-radius: 4px;
-	cursor: pointer;
-	margin: 0 8px;
-	padding: 4px 8px;
-	transition: border-color var(--transition-hover) ease;
-	will-change: border-color;
+#enter {
+	margin: 0 4px;
+	padding: 6px 12px;
+	position: relative;
 }
 
-#enter-btn:hover {
-	border-color: #999;
+#enter::before {
+	animation: enter 2s linear var(--transition) infinite;
+	border: 1px solid var(--red);
+	border-radius: 4px;
+	content: "";
+	inset: 0;
+	position: absolute;
+	will-change: transform;
+}
+
+@keyframes enter {
+
+	0%,
+	20%,
+	100% {
+		transform: scale(1);
+	}
+
+	10% {
+		transform: scale(0.92);
+	}
 }
 
 #overlay {
@@ -154,30 +162,31 @@ button {
 #sound-btn {
 	align-items: flex-end;
 	gap: 4px;
-	height: 1.5rem;
+	height: 22px;
 	transform: translateY(-3px);
 }
 
 .sound-bar {
-	background: #fff;
+	background-color: #fff;
 	border-radius: 2px;
 	height: 6px;
 	width: 2px;
+	will-change: height;
 }
 
 .sound-bar.active {
-	animation: sound 1s infinite ease-in-out;
+	animation: sound-bar 1s infinite ease-in-out;
 }
 
-.sound-bar:nth-child(2) {
+.sound-bar:nth-of-type(2) {
 	animation-delay: .4s;
 }
 
-.sound-bar:nth-child(3) {
+.sound-bar:nth-of-type(3) {
 	animation-delay: .2s;
 }
 
-@keyframes sound {
+@keyframes sound-bar {
 
 	0%,
 	100% {
@@ -196,7 +205,7 @@ button {
 }
 
 #zoom-wrap {
-	align-items: center;
+	align-items: flex-end;
 	display: flex;
 	flex-direction: column-reverse;
 	gap: 1rem;
@@ -207,12 +216,15 @@ button {
 }
 
 .zoom-bar {
-	background-color: #ffffff50;
+	backdrop-filter: blur(4px);
+	background-color: #ffffff75;
 	border-radius: 2px;
 	height: 2px;
-	transition: background-color var(--transition) ease;
+	transform: scaleX(0);
+	transform-origin: right;
+	transition: background-color var(--transition) ease, transform var(--transition) ease;
 	width: 1rem;
-	will-change: background-color;
+	will-change: background-color, transform;
 }
 
 .zoom-bar:nth-of-type(odd) {
@@ -221,6 +233,10 @@ button {
 
 .zoom-bar.active {
 	background-color: #fff;
+}
+
+.zoom-bar.show {
+	transform: scaleX(1);
 }
 
 #levels-btn-wrap {
@@ -255,57 +271,6 @@ button {
 	transform: translateY(0);
 }
 
-#levels {
-	backdrop-filter: blur(6px);
-	background-color: #00000050;
-	border-radius: 1rem;
-	display: flex;
-	flex-direction: column;
-	gap: var(--gap);
-	left: 50%;
-	opacity: 0;
-	padding: var(--gap);
-	position: absolute;
-	top: 50%;
-	transform: translate(-50%, -50%);
-	transform: translateY(1rem);
-	transition: transform var(--transition) ease, opacity var(--transition) ease;
-	will-change: transform, opacity;
-}
-
-#levels-top {
-	align-items: center;
-	color: #fff;
-	display: flex;
-	justify-content: space-between;
-}
-
-#select-level {
-	font-size: 2rem;
-}
-
-#levels-grid {
-	display: grid;
-	gap: var(--gap);
-	grid-template-columns: repeat(5, 1fr);
-	grid-template-rows: repeat(2, 1fr);
-}
-
-.level {
-	border: 1px solid var(--gray);
-	border-radius: 50%;
-	color: #fff;
-	cursor: not-allowed;
-	font-size: 2rem;
-	height: 4rem;
-	width: 4rem;
-}
-
-.level.unlocked {
-	border-color: #fff;
-	cursor: pointer;
-}
-
 #info {
 	display: none;
 }
@@ -320,10 +285,12 @@ button {
 	opacity: 0;
 	outline: none;
 	position: fixed;
-	transition: opacity .75s;
+	transition: opacity 1s ease;
 	will-change: opacity;
 }
 
+#loading span.show,
+#loaded span.show,
 .fs-icon.active,
 #webgl.active {
 	opacity: 1;
