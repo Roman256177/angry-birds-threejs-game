@@ -1,5 +1,5 @@
-varying float vY;
 uniform float uFade;
+varying float vY;
 
 void main() {
     float alpha = smoothstep(0.1, 1.0, vY) * uFade;

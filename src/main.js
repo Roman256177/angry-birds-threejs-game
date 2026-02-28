@@ -52,9 +52,10 @@ class Game {
 		this.cursor = { x: 0, y: 0 };
 		this.sizes = { width: window.innerWidth, height: window.innerHeight };
 		this.prevTime = 0;
+		this.skyColor = new THREE.Color(0x7bb8e8);
 
 		this.scene = new THREE.Scene();
-		this.scene.fog = new THREE.Fog(0x7bb8e8, 10, 400);
+		this.scene.fog = new THREE.Fog(this.skyColor, 1, 400);
 
 		this.camera = new THREE.PerspectiveCamera(
 			45,
@@ -67,10 +68,8 @@ class Game {
 		this.camera.position.set(36, 3, 40);
 		this.camera.lookAt(this.cameraTarget);
 		this.scene.add(this.camera);
-		//
-		this.zoom = 1;
 		this.zoomTarget = 1;
-		this.lastActive = -1;
+		this.lastZoomBar = -1;
 
 		this.renderer = new THREE.WebGLRenderer({
 			canvas: this.elements.canvas,
@@ -80,7 +79,7 @@ class Game {
 			outputColorSpace: THREE.SRGBColorSpace,
 		});
 		this.renderer.shadowMap.enabled = true;
-		this.renderer.setClearColor(0x7bb8e8);
+		this.renderer.setClearColor(this.skyColor);
 		this.setRenderer();
 
 		this.world = new CANNON.World({
@@ -91,7 +90,7 @@ class Game {
 			() => (this.isLoaded = true),
 		);
 		this.gltfLoader = new GLTFLoader(this.loadingManager);
-		this.fontLoader = new FontLoader();
+		this.fontLoader = new FontLoader(this.loadingManager);
 
 		this.snow = null;
 		this.title = null;
@@ -128,63 +127,57 @@ class Game {
 		this.setupSnow();
 		this.setupTitle();
 		this.setupEvents();
-		this.loadModels();
+		this.loadModel();
 		this.loop();
 		this.start();
 	}
 
 	setupLights() {
-		this.scene.add(new THREE.AmbientLight(0x7bb8e8, 0.45));
-
+		this.scene.add(new THREE.AmbientLight(this.skyColor, 0.45));
 		const sun = new THREE.DirectionalLight(0xfff5c2, 0.9);
 		sun.position.set(80, 60, -40);
 		sun.castShadow = true;
 		sun.shadow.mapSize.set(1024, 1024);
 		sun.shadow.camera.near = 20;
-		sun.shadow.camera.far = 260;
+		sun.shadow.camera.far = 250;
 		sun.shadow.camera.right = 180;
-		sun.shadow.camera.left = -120;
-		sun.shadow.camera.top = 120;
+		sun.shadow.camera.left = -100;
+		sun.shadow.camera.top = 100;
 		sun.shadow.camera.bottom = -50;
 		sun.shadow.bias = -0.005;
 		sun.shadow.normalBias = 0.05;
 		sun.shadow.radius = 2;
 		this.scene.add(sun);
-		//
-		const cameraHelper = new THREE.CameraHelper(sun.shadow.camera);
-		this.scene.add(cameraHelper);
 	}
-	//
+
 	setupSnow() {
-		const snowCount = 2000;
-		const snowArea = 300;
-		const snowHeight = 100;
+		const count = 2000;
+		const area = 300;
+		const height = 100;
 
 		const geometry = new THREE.BufferGeometry();
-		const positions = new Float32Array(snowCount * 3);
-		const speeds = new Float32Array(snowCount);
-		const winds = new Float32Array(snowCount);
-		const sizes = new Float32Array(snowCount);
+		const positions = new Float32Array(count * 3);
+		const speeds = new Float32Array(count);
+		const winds = new Float32Array(count);
+		const sizes = new Float32Array(count);
 
-		for (let i = 0; i < snowCount; i++) {
-			positions[i * 3 + 0] = (Math.random() - 0.5) * snowArea - 50;
-			positions[i * 3 + 1] = Math.random() * snowHeight;
-			positions[i * 3 + 2] = (Math.random() - 0.5) * snowArea;
-			speeds[i] = 1.5 + Math.random();
+		for (let i = 0; i < count; i++) {
+			positions[i * 3] = (Math.random() - 0.5) * area - 80;
+			positions[i * 3 + 1] = Math.random() * height;
+			positions[i * 3 + 2] = (Math.random() - 0.5) * area;
+			speeds[i] = 1 + Math.random() * 2;
 			winds[i] = Math.random() * Math.PI * 2;
-			sizes[i] = 1 + Math.random() * 0.5;
+			sizes[i] = 1 + Math.random();
 		}
 
 		geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 		geometry.setAttribute("aSpeed", new THREE.BufferAttribute(speeds, 1));
 		geometry.setAttribute("aWind", new THREE.BufferAttribute(winds, 1));
 		geometry.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
-		//
+
 		const material = new THREE.ShaderMaterial({
-			uniforms: {
-				uTime: { value: 0 },
-				uHeight: { value: snowHeight },
-			},
+			precision: "lowp",
+			uniforms: { uTime: { value: 0 } },
 			vertexShader: snowVertexShader,
 			fragmentShader: snowFragmentShader,
 			depthWrite: false,
@@ -198,29 +191,27 @@ class Game {
 
 	setupTitle() {
 		const group = new THREE.Group();
-		group.position.set(-400, 160, 0);
 		group.rotation.y = Math.PI * 0.5;
+		group.position.set(-400, 160, 0);
 		this.scene.add(group);
 		const font = this.fontLoader.parse(fontJSON);
 
 		const subtitleGeometry = new TextGeometry("* Christmas Edition *", {
-			font: font,
+			font,
 			size: 8,
 			depth: 0,
 			curveSegments: 1,
 		});
 		const subtitleMaterial = new THREE.MeshBasicMaterial({
-			color: 0xffffff,
+			color: this.skyColor,
 			fog: false,
-			transparent: true,
-			opacity: 0,
 		});
 		this.subtitle = new THREE.Mesh(subtitleGeometry, subtitleMaterial);
 		this.subtitle.position.set(-115, 45, 0);
 		group.add(this.subtitle);
 
 		const titleGeometry = new TextGeometry("Angry Birds", {
-			font: font,
+			font,
 			size: 44,
 			depth: 0,
 			curveSegments: 1,
@@ -243,7 +234,7 @@ class Game {
 		group.add(this.title);
 	}
 	//
-	loadModels() {
+	loadModel() {
 		this.gltfLoader.load("/models/angrybirds.glb", (gltf) => {
 			const root = gltf.scene.children[0];
 			root.traverse((obj) => {
@@ -286,12 +277,12 @@ class Game {
 	async start() {
 		this.showSpans(this.elements.loadingSpans, true);
 		this.toggleClass(this.elements.loaderBar, "active", true);
-		await this.wait(1000);
+		await this.wait(1500);
 		this.setLoaderProgress(0.33);
 		await this.wait(1500);
 		this.setLoaderProgress(0.66);
 		await this.wait(1500);
-		while (!this.isLoaded) await this.wait(25);
+		while (!this.isLoaded) await this.wait(50);
 		this.setLoaderProgress(1);
 		this.showSpans(this.elements.loadingSpans, false);
 		await this.wait(500);
@@ -305,9 +296,8 @@ class Game {
 		await this.wait(500);
 		this.elements.loader.classList.add("remove");
 		this.elements.canvas.classList.add("active");
-		await this.wait(500);
 		await this.animateCamera(60, 6, 0, 0, 12, 0);
-		this.showTitle();
+		await this.showTitle();
 		this.showSpans(this.elements.zoomBars, true, 50);
 		this.enableCameraMove(true);
 	}
@@ -369,34 +359,38 @@ class Game {
 	}
 
 	showTitle() {
-		const tl = gsap.timeline();
-		tl.to(
-			this.title.material.uniforms.uFade,
-			{
-				value: 1,
-				duration: 1,
-				ease: "power1.inOut",
-			},
-			0,
-		);
-		tl.to(
-			this.subtitle.material,
-			{
-				opacity: 1,
-				duration: 1,
-				ease: "power1.inOut",
-			},
-			0,
-		);
-		tl.to(
-			this.subtitle.position,
-			{
-				y: 40,
-				duration: 1,
-				ease: "power1.inOut",
-			},
-			0,
-		);
+		return new Promise((resolve) => {
+			const tl = gsap.timeline({ onComplete: resolve });
+			tl.to(
+				this.title.material.uniforms.uFade,
+				{
+					value: 1,
+					duration: 1.5,
+					ease: "power1.inOut",
+				},
+				0,
+			);
+			tl.to(
+				this.subtitle.material.color,
+				{
+					r: 1,
+					g: 1,
+					b: 1,
+					duration: 1.5,
+					ease: "power1.inOut",
+				},
+				0,
+			);
+			tl.to(
+				this.subtitle.position,
+				{
+					y: 40,
+					duration: 1.5,
+					ease: "power1.inOut",
+				},
+				0,
+			);
+		});
 	}
 
 	enableCameraMove(bool) {
@@ -446,12 +440,6 @@ class Game {
 			this.playSound(this.sounds.add[type]);
 			await this.wait(100 + Math.random() * 100);
 		}
-	}
-
-	playSound(sound) {
-		if (!this.isSound) return;
-		sound.currentTime = 0;
-		sound.play();
 	}
 
 	initGameLoop() {}
@@ -505,6 +493,12 @@ class Game {
 		});
 	}
 
+	playSound(sound) {
+		if (!this.isSound) return;
+		sound.currentTime = 0;
+		sound.play();
+	}
+
 	toggleSound() {
 		this.isSound = !this.isSound;
 		this.isSound ? this.sounds.ambient.play() : this.sounds.ambient.pause();
@@ -522,26 +516,23 @@ class Game {
 
 		if (this.isCameraMove) {
 			const lerpSpeed = 5 * delta;
-
-			this.zoom += (this.zoomTarget - this.zoom) * lerpSpeed;
-			this.camera.zoom = this.zoom;
+			this.camera.zoom += (this.zoomTarget - this.camera.zoom) * lerpSpeed;
 			this.camera.updateProjectionMatrix();
 
-			const zoomFactor = 1 + ((this.zoom - 1) / 3) * 3;
+			const normalizedZoom = (this.camera.zoom - 1) / 3;
+			const zoomFactor = 1 + normalizedZoom * 3;
 			const targetZ = this.cameraTargetBase.z - this.cursor.x * zoomFactor * 10;
 			const targetY = this.cameraTargetBase.y - this.cursor.y * zoomFactor * 5;
 			this.cameraTarget.z += (targetZ - this.cameraTarget.z) * lerpSpeed;
 			this.cameraTarget.y += (targetY - this.cameraTarget.y) * lerpSpeed;
 			this.camera.lookAt(this.cameraTarget);
 
-			const active = Math.round(
-				((this.zoom - 1) / 3) * this.elements.zoomBars.length,
-			);
-			if (active !== this.lastActive) {
+			const active = Math.round(normalizedZoom * this.elements.zoomBars.length);
+			if (active !== this.lastZoomBar) {
 				this.elements.zoomBars.forEach((z, i) =>
 					z.classList.toggle("active", i < active),
 				);
-				this.lastActive = active;
+				this.lastZoomBar = active;
 			}
 		}
 		//
@@ -558,9 +549,9 @@ class Game {
 			);
 		}
 
-		this.renderer.render(this.scene, this.camera);
-
 		//this.controls.update();
+
+		this.renderer.render(this.scene, this.camera);
 	}
 }
 
