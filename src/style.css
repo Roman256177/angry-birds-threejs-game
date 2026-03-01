@@ -9,7 +9,9 @@
 :root {
 	--gap: 2rem;
 	--red: #ea002a;
-	--transition: .5s;
+	--transparent: #ffffff75;
+	--transition: 0.5s;
+	--transition-hover: 0.3s;
 }
 
 html,
@@ -52,7 +54,7 @@ button {
 	justify-content: center;
 }
 
-#load-wrap {
+#loader-text {
 	height: 19px;
 	position: relative;
 	width: 7ch;
@@ -67,10 +69,15 @@ button {
 }
 
 #loading span,
-#loaded span {
+#loaded span,
+.level-play span {
 	opacity: 0;
 	transition: opacity var(--transition) ease;
-	will-change: opacity;
+}
+
+#loading span.show,
+#loaded span.show {
+	opacity: 1;
 }
 
 #loader-bar {
@@ -112,7 +119,12 @@ button {
 	position: absolute;
 	transform: translateY(1rem);
 	transition: opacity var(--transition) ease, transform var(--transition) ease;
-	will-change: opacity, transform;
+}
+
+#press-enter.active {
+	opacity: 1;
+	pointer-events: auto;
+	transform: translateY(0);
 }
 
 #enter {
@@ -128,7 +140,6 @@ button {
 	content: "";
 	inset: 0;
 	position: absolute;
-	will-change: transform;
 }
 
 @keyframes enter {
@@ -145,6 +156,7 @@ button {
 }
 
 #overlay {
+	color: #fff;
 	inset: 0;
 	position: fixed;
 	z-index: 1;
@@ -166,27 +178,26 @@ button {
 	transform: translateY(-3px);
 }
 
-.sound-bar {
+#sound-btn span {
 	background-color: #fff;
 	border-radius: 2px;
 	height: 6px;
 	width: 2px;
-	will-change: height;
 }
 
-.sound-bar.active {
-	animation: sound-bar 1s infinite ease-in-out;
+#sound-btn span.active {
+	animation: sound 1s infinite ease-in-out;
 }
 
-.sound-bar:nth-of-type(2) {
-	animation-delay: .4s;
+#sound-btn span:nth-of-type(2) {
+	animation-delay: 0.4s;
 }
 
-.sound-bar:nth-of-type(3) {
-	animation-delay: .2s;
+#sound-btn span:nth-of-type(3) {
+	animation-delay: 0.2s;
 }
 
-@keyframes sound-bar {
+@keyframes sound {
 
 	0%,
 	100% {
@@ -201,10 +212,13 @@ button {
 .fs-icon {
 	opacity: 0;
 	transition: opacity var(--transition) ease;
-	will-change: opacity;
 }
 
-#zoom-wrap {
+.fs-icon.active {
+	opacity: 1;
+}
+
+#zoom {
 	align-items: flex-end;
 	display: flex;
 	flex-direction: column-reverse;
@@ -215,60 +229,186 @@ button {
 	transform: translateY(-50%);
 }
 
-.zoom-bar {
-	backdrop-filter: blur(4px);
-	background-color: #ffffff75;
+#zoom span {
+	background-color: var(--transparent);
 	border-radius: 2px;
 	height: 2px;
 	transform: scaleX(0);
 	transform-origin: right;
 	transition: background-color var(--transition) ease, transform var(--transition) ease;
 	width: 1rem;
-	will-change: background-color, transform;
+	will-change: transform;
 }
 
-.zoom-bar:nth-of-type(odd) {
+#zoom span:nth-of-type(odd) {
 	width: 1.5rem;
 }
 
-.zoom-bar.active {
+#zoom span.active {
 	background-color: #fff;
 }
 
-.zoom-bar.show {
+#zoom span.show {
 	transform: scaleX(1);
 }
 
-#levels-btn-wrap {
+#stars {
 	align-items: center;
-	border-radius: 50%;
+	display: flex;
+	font-size: 1.5rem;
+	gap: 1rem;
+	justify-content: center;
+	left: var(--gap);
+	position: absolute;
+	top: var(--gap);
+}
+
+#total-stars {
+	font-size: 2rem;
+}
+
+#levels {
+	align-items: center;
 	bottom: var(--gap);
 	display: flex;
-	height: 150px;
-	justify-content: center;
+	gap: var(--gap);
 	left: 50%;
 	position: absolute;
-	transform: translate(-50%, calc(50% - 25px));
-	width: 150px;
+	transform: translateX(-50%);
 }
 
-#levels-btn {
+.level-item {
+	opacity: 0;
+	transform: translateY(1rem);
+	transition: opacity var(--transition) ease, transform var(--transition) ease;
+}
+
+.level-item.show {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+.level {
+	position: relative;
+}
+
+.level-connect {
 	background-color: #fff;
 	border-radius: 50%;
-	height: 50px;
-	opacity: 0;
-	pointer-events: none;
-	transform: translateY(1rem);
-	transition: transform var(--transition) ease, opacity var(--transition) ease;
-	width: 50px;
-	will-change: opacity, transform;
+	height: 4px;
+	width: 4px;
 }
 
-#levels-btn.active,
-#press-enter.active {
-	opacity: 1;
+.level-btn {
+	border: 2px solid #fff;
+	border-radius: 50%;
+	color: #fff;
+	pointer-events: none;
+	height: 54px;
+	overflow: hidden;
+	position: relative;
+	transition: border-color var(--transition) ease;
+	width: 54px;
+}
+
+.level-item.show .level-btn {
 	pointer-events: auto;
-	transform: translateY(0);
+}
+
+.level.locked .level-btn {
+	border-color: var(--transparent);
+	cursor: not-allowed;
+}
+
+.level-number {
+	font-size: 1.25rem;
+}
+
+.level-number span {
+	transition: opacity var(--transition) ease;
+}
+
+.level-number span:nth-of-type(2) {
+	transition-delay: 50ms;
+}
+
+.level.locked .level-number {
+	opacity: 0;
+}
+
+.level-btn:hover .level-number span {
+	opacity: 0;
+}
+
+.level:not(.locked):has(.level-btn:hover) .level-play span {
+	opacity: 1;
+}
+
+.level-btn:hover .level-play span:nth-of-type(1) {
+	transition-delay: 50ms;
+}
+
+.level-btn:hover .level-play span:nth-of-type(2) {
+	transition-delay: 100ms;
+}
+
+.level-btn:hover .level-play span:nth-of-type(3) {
+	transition-delay: 150ms;
+}
+
+.level-btn:hover .level-play span:nth-of-type(4) {
+	transition-delay: 200ms;
+}
+
+.level-lock,
+.level-play {
+	left: 50%;
+	position: absolute;
+	top: 50%;
+	transform: translate(-50%, -50%);
+}
+
+.level-star {
+	opacity: 0;
+	position: absolute;
+	transition: opacity var(--transition-hover) ease, transform var(--transition-hover) ease;
+}
+
+.level-star.left {
+	left: -12px;
+	top: -20px;
+	transform: translate(0.5rem, 0.5rem);
+}
+
+.level-star.middle {
+	left: 50%;
+	top: -32px;
+	transform: translate(-50%, 0.5rem);
+	transition-delay: 50ms;
+}
+
+.level-star.right {
+	right: -12px;
+	top: -20px;
+	transform: translate(-0.5rem, 0.5rem);
+	transition-delay: 100ms;
+}
+
+.level-star use {
+	color: var(--transparent);
+}
+
+.level-star.earned use {
+	color: #fff;
+}
+
+.level:not(.locked):has(.level-btn:hover) .level-star {
+	opacity: 1;
+	transform: translate(0, 0);
+}
+
+.level:not(.locked):has(.level-btn:hover) .level-star.middle {
+	transform: translate(-50%, 0);
 }
 
 #info {
@@ -285,13 +425,10 @@ button {
 	opacity: 0;
 	outline: none;
 	position: fixed;
-	transition: opacity 1.5s;
+	transition: opacity 1.5s ease;
 	will-change: opacity;
 }
 
-#loading span.show,
-#loaded span.show,
-.fs-icon.active,
 #webgl.active {
 	opacity: 1;
 }

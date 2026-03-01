@@ -24,10 +24,14 @@ class Game {
 			loadedSpans: all("#loaded span"),
 			pressEnter: id("press-enter"),
 			soundBtn: id("sound-btn"),
-			soundBars: all(".sound-bar"),
+			soundSpans: all("#sound-btn span"),
 			fsBtn: id("fs-btn"),
 			fsIcons: all(".fs-icon"),
-			zoomBars: all(".zoom-bar"),
+			zoomSpans: all("#zoom span"),
+			levels: all(".level"),
+			totalStars: id("total-stars"),
+			levelItems: all(".level-item"),
+			levelBtns: all(".level-btn"),
 		};
 
 		this.sounds = {
@@ -39,6 +43,8 @@ class Game {
 			},
 			ui: {
 				click: new Audio("/sounds/ui/click.wav"),
+				disabled: new Audio("/sounds/ui/disabled.wav"),
+				select: new Audio("/sounds/ui/select.wav"),
 			},
 		};
 
@@ -48,6 +54,7 @@ class Game {
 		this.isSound = false;
 		this.isCameraMove = false;
 		this.isLoaded = false;
+		this.isPlay = false;
 
 		this.cursor = { x: 0, y: 0 };
 		this.sizes = { width: window.innerWidth, height: window.innerHeight };
@@ -68,8 +75,9 @@ class Game {
 		this.camera.position.set(36, 3, 40);
 		this.camera.lookAt(this.cameraTarget);
 		this.scene.add(this.camera);
+
 		this.zoomTarget = 1;
-		this.lastZoomBar = -1;
+		this.lastZoomSpan = -1;
 
 		this.renderer = new THREE.WebGLRenderer({
 			canvas: this.elements.canvas,
@@ -97,13 +105,13 @@ class Game {
 		this.subtitle = null;
 
 		//
-		this.isPlaying = false;
-
 		this.helper = {
 			birds: [],
 			pigs: [],
 			boxes: [],
 			level01: null,
+			level02: null,
+			level03: null,
 		};
 
 		//this.controls = new OrbitControls(this.camera, this.elements.canvas);
@@ -194,43 +202,43 @@ class Game {
 		group.rotation.y = Math.PI * 0.5;
 		group.position.set(-400, 160, 0);
 		this.scene.add(group);
+
 		const font = this.fontLoader.parse(fontJSON);
 
-		const subtitleGeometry = new TextGeometry("* Christmas Edition *", {
+		const subtitleGeo = new TextGeometry("* Christmas Edition *", {
 			font,
 			size: 8,
 			depth: 0,
 			curveSegments: 1,
 		});
-		const subtitleMaterial = new THREE.MeshBasicMaterial({
+		const subtitleMat = new THREE.MeshBasicMaterial({
 			color: this.skyColor,
 			fog: false,
 		});
-		this.subtitle = new THREE.Mesh(subtitleGeometry, subtitleMaterial);
+		this.subtitle = new THREE.Mesh(subtitleGeo, subtitleMat);
 		this.subtitle.position.set(-115, 45, 0);
 		group.add(this.subtitle);
 
-		const titleGeometry = new TextGeometry("Angry Birds", {
+		const titleGeo = new TextGeometry("Angry Birds", {
 			font,
 			size: 44,
 			depth: 0,
 			curveSegments: 1,
 		});
-		titleGeometry.computeBoundingBox();
-		titleGeometry.translate(
-			-(titleGeometry.boundingBox.max.x - titleGeometry.boundingBox.min.x) *
-				0.5,
+		titleGeo.computeBoundingBox();
+		titleGeo.translate(
+			-(titleGeo.boundingBox.max.x - titleGeo.boundingBox.min.x) * 0.5,
 			0,
 			0,
 		);
-		const titleMaterial = new THREE.ShaderMaterial({
+		const titleMat = new THREE.ShaderMaterial({
 			precision: "lowp",
 			uniforms: { uFade: { value: 0 } },
 			vertexShader: textVertexShader,
 			fragmentShader: textFragmentShader,
 			transparent: true,
 		});
-		this.title = new THREE.Mesh(titleGeometry, titleMaterial);
+		this.title = new THREE.Mesh(titleGeo, titleMat);
 		group.add(this.title);
 	}
 	//
@@ -277,29 +285,38 @@ class Game {
 	async start() {
 		this.showSpans(this.elements.loadingSpans, true);
 		this.toggleClass(this.elements.loaderBar, "active", true);
+
 		await this.wait(1500);
 		this.setLoaderProgress(0.33);
 		await this.wait(1500);
 		this.setLoaderProgress(0.66);
 		await this.wait(1500);
+
 		while (!this.isLoaded) await this.wait(50);
+
 		this.setLoaderProgress(1);
 		this.showSpans(this.elements.loadingSpans, false);
 		await this.wait(500);
+
 		this.showSpans(this.elements.loadedSpans, true);
 		await this.wait(1000);
+
 		this.toggleClass(this.elements.pressEnter, "active", true);
 		await this.waitForEnter();
 		this.toggleClass(this.elements.pressEnter, "active", false);
 		this.toggleClass(this.elements.loaderBar, "active", false);
 		this.showSpans(this.elements.loadedSpans, false, undefined, true);
+
 		await this.wait(500);
 		this.elements.loader.classList.add("remove");
 		this.elements.canvas.classList.add("active");
+
 		await this.animateCamera(60, 6, 0, 0, 12, 0);
 		await this.showTitle();
-		this.showSpans(this.elements.zoomBars, true, 50);
+
 		this.enableCameraMove(true);
+		this.showSpans(this.elements.zoomSpans, true, 50);
+		this.showSpans(this.elements.levelItems, true, 50);
 	}
 
 	wait(ms) {
@@ -358,6 +375,11 @@ class Game {
 		});
 	}
 
+	enableCameraMove(bool) {
+		this.isCameraMove = bool;
+		if (bool) this.cameraTargetBase = this.cameraTarget.clone();
+	}
+
 	showTitle() {
 		return new Promise((resolve) => {
 			const tl = gsap.timeline({ onComplete: resolve });
@@ -393,23 +415,9 @@ class Game {
 		});
 	}
 
-	enableCameraMove(bool) {
-		this.isCameraMove = bool;
-		if (bool) this.cameraTargetBase = this.cameraTarget.clone();
-	}
-
 	//
-	async setupLevel01() {
-		await new Promise((resolve) => {
-			gsap.to(this.text.position, {
-				y: 60,
-				duration: 1,
-				ease: "power1.inOut",
-				onComplete: resolve,
-			});
-		});
-		this.changeText("Level 01");
-		await this.showText();
+	async setLevel() {
+		this.enableCameraMove(false);
 		await this.spawnObjects(this.helper.birds, "bird");
 		await this.animateCamera(10, 20, -30, -30, 0, 10);
 		await this.spawnObjects(this.helper.boxes, "box");
@@ -475,12 +483,13 @@ class Game {
 					document.documentElement.webkitRequestFullscreen?.();
 			}
 			this.elements.fsIcons.forEach((el) => el.classList.toggle("active"));
+			this.playSound(this.sounds.ui.click);
 		});
 
-		this.elements.soundBtn.addEventListener(
-			"click",
-			this.toggleSound.bind(this),
-		);
+		this.elements.soundBtn.addEventListener("click", () => {
+			this.toggleSound();
+			this.playSound(this.sounds.ui.click);
+		});
 
 		window.addEventListener("wheel", (e) => {
 			if (!this.isCameraMove) return;
@@ -488,8 +497,22 @@ class Game {
 			this.zoomTarget = Math.min(Math.max(this.zoomTarget, 1), 4);
 		});
 
-		[this.elements.fsBtn, this.elements.soundBtn].forEach((btn) => {
-			btn.addEventListener("click", () => this.playSound(this.sounds.ui.click));
+		this.elements.levelBtns.forEach((btn) => {
+			btn.addEventListener("mouseenter", () => {
+				if (!btn.parentElement.classList.contains("locked"))
+					this.playSound(this.sounds.ui.select);
+			});
+		});
+
+		this.elements.levelBtns.forEach((btn) => {
+			btn.addEventListener("click", () => {
+				if (btn.parentElement.classList.contains("locked")) {
+					this.playSound(this.sounds.ui.disabled);
+				} else {
+					this.playSound(this.sounds.ui.click);
+					this.setLevel(parseInt(btn.dataset.level));
+				}
+			});
 		});
 	}
 
@@ -502,12 +525,12 @@ class Game {
 	toggleSound() {
 		this.isSound = !this.isSound;
 		this.isSound ? this.sounds.ambient.play() : this.sounds.ambient.pause();
-		this.elements.soundBars.forEach((bar) =>
+		this.elements.soundSpans.forEach((bar) =>
 			bar.classList.toggle("active", this.isSound),
 		);
 	}
 
-	loop(time) {
+	loop(time = 0) {
 		requestAnimationFrame(this.loop.bind(this));
 		const delta = Math.min((time - this.prevTime) / 1000, 0.1);
 		this.prevTime = time;
@@ -516,6 +539,7 @@ class Game {
 
 		if (this.isCameraMove) {
 			const lerpSpeed = 5 * delta;
+
 			this.camera.zoom += (this.zoomTarget - this.camera.zoom) * lerpSpeed;
 			this.camera.updateProjectionMatrix();
 
@@ -523,20 +547,23 @@ class Game {
 			const zoomFactor = 1 + normalizedZoom * 3;
 			const targetZ = this.cameraTargetBase.z - this.cursor.x * zoomFactor * 10;
 			const targetY = this.cameraTargetBase.y - this.cursor.y * zoomFactor * 5;
+
 			this.cameraTarget.z += (targetZ - this.cameraTarget.z) * lerpSpeed;
 			this.cameraTarget.y += (targetY - this.cameraTarget.y) * lerpSpeed;
 			this.camera.lookAt(this.cameraTarget);
 
-			const active = Math.round(normalizedZoom * this.elements.zoomBars.length);
-			if (active !== this.lastZoomBar) {
-				this.elements.zoomBars.forEach((z, i) =>
+			const active = Math.round(
+				normalizedZoom * this.elements.zoomSpans.length,
+			);
+			if (active !== this.lastZoomSpan) {
+				this.elements.zoomSpans.forEach((z, i) =>
 					z.classList.toggle("active", i < active),
 				);
-				this.lastZoomBar = active;
+				this.lastZoomSpan = active;
 			}
 		}
 		//
-		if (this.isPlaying) {
+		if (this.isPlay) {
 			this.world.step(1 / 60, delta, 3);
 			[...this.helper.birds, ...this.helper.pigs, ...this.helper.boxes].forEach(
 				(obj) => {
