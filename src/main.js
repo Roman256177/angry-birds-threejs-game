@@ -3,7 +3,7 @@ import * as CANNON from "cannon-es";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
-import fontJSON from "three/examples/fonts/helvetiker_regular.typeface.json";
+import fontJSON from "three/examples/fonts/droid/droid_sans_regular.typeface.json";
 import gsap from "gsap";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import snowVertexShader from "./shaders/snow/vertex.glsl";
@@ -20,18 +20,16 @@ class Game {
 			canvas: id("webgl"),
 			loader: id("loader"),
 			loaderBar: id("loader-bar"),
-			loadingSpans: all("#loading span"),
-			loadedSpans: all("#loaded span"),
+			loadings: all("#loading span"),
+			loadeds: all("#loaded span"),
 			pressEnter: id("press-enter"),
 			soundBtn: id("sound-btn"),
-			soundSpans: all("#sound-btn span"),
+			fss: all(".fs"),
 			fsBtn: id("fs-btn"),
-			fsIcons: all(".fs-icon"),
-			zoomSpans: all("#zoom span"),
-			levels: all(".level"),
-			totalStars: id("total-stars"),
-			levelItems: all(".level-item"),
+			uiStart: all(".ui-start"),
 			levelBtns: all(".level-btn"),
+			levelsItems: all(".levels-item"),
+			zooms: all("#zoom span"),
 		};
 
 		this.sounds = {
@@ -104,7 +102,6 @@ class Game {
 		this.title = null;
 		this.subtitle = null;
 
-		//
 		this.helper = {
 			birds: [],
 			pigs: [],
@@ -283,51 +280,51 @@ class Game {
 	}
 
 	async start() {
-		this.showSpans(this.elements.loadingSpans, true);
-		this.toggleClass(this.elements.loaderBar, "active", true);
+		this.stagger(this.elements.loadings, true);
+		await this.wait(500);
+		this.toggleClass(this.elements.loaderBar, "show", true);
 
 		await this.wait(1500);
-		this.setLoaderProgress(0.33);
+		this.setLoadingProgress(0.33);
 		await this.wait(1500);
-		this.setLoaderProgress(0.66);
+		this.setLoadingProgress(0.66);
 		await this.wait(1500);
 
 		while (!this.isLoaded) await this.wait(50);
 
-		this.setLoaderProgress(1);
-		this.showSpans(this.elements.loadingSpans, false);
+		this.setLoadingProgress(1);
+		this.stagger(this.elements.loadings, false);
 		await this.wait(500);
 
-		this.showSpans(this.elements.loadedSpans, true);
+		this.stagger(this.elements.loadeds, true);
 		await this.wait(1000);
 
-		this.toggleClass(this.elements.pressEnter, "active", true);
+		this.toggleClass(this.elements.pressEnter, "show", true);
 		await this.waitForEnter();
-		this.toggleClass(this.elements.pressEnter, "active", false);
-		this.toggleClass(this.elements.loaderBar, "active", false);
-		this.showSpans(this.elements.loadedSpans, false, undefined, true);
+		this.toggleClass(this.elements.pressEnter, "show", false);
+		this.toggleClass(this.elements.loaderBar, "show", false);
+		this.stagger(this.elements.loadeds, false);
 
 		await this.wait(500);
 		this.elements.loader.classList.add("remove");
-		this.elements.canvas.classList.add("active");
+		this.elements.canvas.classList.add("show");
 
 		await this.animateCamera(60, 6, 0, 0, 12, 0);
 		await this.showTitle();
 
 		this.enableCameraMove(true);
-		this.showSpans(this.elements.zoomSpans, true, 50);
-		this.showSpans(this.elements.levelItems, true, 50);
+		this.stagger(this.elements.uiStart, true, 50);
 	}
 
 	wait(ms) {
 		return new Promise((resolve) => setTimeout(resolve, ms));
 	}
 
-	async showSpans(spans, bool, delay = 25, reverse = false) {
-		const n = spans.length;
+	async stagger(elements, bool, delay = 25) {
+		const n = elements.length;
 		for (let i = 0; i < n; i++) {
-			const index = !bool && reverse ? n - 1 - i : i;
-			spans[index].classList.toggle("show", bool);
+			const index = bool ? i : n - 1 - i;
+			elements[index].classList.toggle("show", bool);
 			await this.wait(delay);
 		}
 	}
@@ -336,7 +333,7 @@ class Game {
 		element.classList.toggle(name, bool);
 	}
 
-	setLoaderProgress(value) {
+	setLoadingProgress(value) {
 		this.elements.loaderBar.style.setProperty("--s", value);
 	}
 
@@ -385,31 +382,17 @@ class Game {
 			const tl = gsap.timeline({ onComplete: resolve });
 			tl.to(
 				this.title.material.uniforms.uFade,
-				{
-					value: 1,
-					duration: 1.5,
-					ease: "power1.inOut",
-				},
+				{ value: 1, duration: 1.5, ease: "power1.inOut" },
 				0,
 			);
 			tl.to(
 				this.subtitle.material.color,
-				{
-					r: 1,
-					g: 1,
-					b: 1,
-					duration: 1.5,
-					ease: "power1.inOut",
-				},
+				{ r: 1, g: 1, b: 1, duration: 1.5, ease: "power1.inOut" },
 				0,
 			);
 			tl.to(
 				this.subtitle.position,
-				{
-					y: 40,
-					duration: 1.5,
-					ease: "power1.inOut",
-				},
+				{ y: 40, duration: 1.5, ease: "power1.inOut" },
 				0,
 			);
 		});
@@ -467,6 +450,12 @@ class Game {
 			this.cursor.y = e.clientY / this.sizes.height - 0.5;
 		});
 
+		window.addEventListener("wheel", (e) => {
+			if (!this.isCameraMove) return;
+			this.zoomTarget += e.deltaY * -0.001;
+			this.zoomTarget = Math.min(Math.max(this.zoomTarget, 1), 4);
+		});
+
 		document.addEventListener("visibilitychange", () => {
 			if (document.hidden) {
 				this.sounds.ambient.pause();
@@ -482,7 +471,7 @@ class Game {
 				document.documentElement.requestFullscreen?.() ||
 					document.documentElement.webkitRequestFullscreen?.();
 			}
-			this.elements.fsIcons.forEach((el) => el.classList.toggle("active"));
+			this.elements.fss.forEach((el) => el.classList.toggle("active"));
 			this.playSound(this.sounds.ui.click);
 		});
 
@@ -491,26 +480,19 @@ class Game {
 			this.playSound(this.sounds.ui.click);
 		});
 
-		window.addEventListener("wheel", (e) => {
-			if (!this.isCameraMove) return;
-			this.zoomTarget += e.deltaY * -0.001;
-			this.zoomTarget = Math.min(Math.max(this.zoomTarget, 1), 4);
-		});
-
 		this.elements.levelBtns.forEach((btn) => {
 			btn.addEventListener("mouseenter", () => {
-				if (!btn.parentElement.classList.contains("locked"))
+				if (!btn.classList.contains("locked"))
 					this.playSound(this.sounds.ui.select);
 			});
-		});
 
-		this.elements.levelBtns.forEach((btn) => {
 			btn.addEventListener("click", () => {
-				if (btn.parentElement.classList.contains("locked")) {
+				if (btn.classList.contains("locked")) {
 					this.playSound(this.sounds.ui.disabled);
 				} else {
 					this.playSound(this.sounds.ui.click);
 					this.setLevel(parseInt(btn.dataset.level));
+					this.stagger(this.elements.levelsItems, false, 50);
 				}
 			});
 		});
@@ -524,14 +506,17 @@ class Game {
 
 	toggleSound() {
 		this.isSound = !this.isSound;
-		this.isSound ? this.sounds.ambient.play() : this.sounds.ambient.pause();
-		this.elements.soundSpans.forEach((bar) =>
-			bar.classList.toggle("active", this.isSound),
-		);
+		if (this.isSound) {
+			if (this.sounds.ambient.paused) this.sounds.ambient.play();
+		} else {
+			this.sounds.ambient.pause();
+		}
+		this.elements.soundBtn.classList.toggle("active", this.isSound);
 	}
 
 	loop(time = 0) {
 		requestAnimationFrame(this.loop.bind(this));
+
 		const delta = Math.min((time - this.prevTime) / 1000, 0.1);
 		this.prevTime = time;
 
@@ -552,11 +537,9 @@ class Game {
 			this.cameraTarget.y += (targetY - this.cameraTarget.y) * lerpSpeed;
 			this.camera.lookAt(this.cameraTarget);
 
-			const active = Math.round(
-				normalizedZoom * this.elements.zoomSpans.length,
-			);
+			const active = Math.round(normalizedZoom * this.elements.zooms.length);
 			if (active !== this.lastZoomSpan) {
-				this.elements.zoomSpans.forEach((z, i) =>
+				this.elements.zooms.forEach((z, i) =>
 					z.classList.toggle("active", i < active),
 				);
 				this.lastZoomSpan = active;

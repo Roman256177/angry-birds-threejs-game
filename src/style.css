@@ -12,13 +12,14 @@
 	--transparent: #ffffff75;
 	--transition: 0.5s;
 	--transition-hover: 0.3s;
+	--blur: 4px;
 }
 
 html,
 body {
 	-moz-osx-font-smoothing: grayscale;
 	-webkit-font-smoothing: antialiased;
-	font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+	font-family: "Droid Sans", "Trebuchet MS", Arial, sans-serif;
 	overflow: hidden;
 	text-rendering: optimizeLegibility;
 	user-select: none;
@@ -28,8 +29,10 @@ button {
 	align-items: center;
 	background: none;
 	border: none;
+	color: inherit;
 	cursor: pointer;
 	display: flex;
+	font: inherit;
 	justify-content: center;
 }
 
@@ -52,32 +55,17 @@ button {
 	display: flex;
 	gap: var(--gap);
 	justify-content: center;
+	width: 90vw;
 }
 
 #loader-text {
-	height: 19px;
-	position: relative;
-	width: 7ch;
+	display: grid;
+	place-items: center end;
 }
 
 #loading,
 #loaded {
-	position: absolute;
-	right: 0;
-	top: 50%;
-	transform: translateY(-50%);
-}
-
-#loading span,
-#loaded span,
-.level-play span {
-	opacity: 0;
-	transition: opacity var(--transition) ease;
-}
-
-#loading span.show,
-#loaded span.show {
-	opacity: 1;
+	grid-area: 1 / 1;
 }
 
 #loader-bar {
@@ -88,12 +76,8 @@ button {
 	transform: scaleX(0);
 	transform-origin: left;
 	transition: transform var(--transition) ease;
-	width: min(400px, 80vw);
+	width: min(350px, 100%);
 	will-change: transform;
-}
-
-#loader-bar.active {
-	transform: scaleX(1);
 }
 
 #loader-bar::before {
@@ -105,30 +89,26 @@ button {
 	transform: scaleX(var(--s, 0));
 	transform-origin: inherit;
 	transition: inherit;
-	will-change: inherit;
 }
 
 #press-enter {
 	align-items: center;
-	bottom: 10vh;
+	bottom: var(--gap);
 	display: flex;
-	gap: 8px;
+	gap: 12px;
 	justify-content: center;
 	opacity: 0;
-	pointer-events: none;
 	position: absolute;
 	transform: translateY(1rem);
 	transition: opacity var(--transition) ease, transform var(--transition) ease;
 }
 
-#press-enter.active {
+#press-enter.show {
 	opacity: 1;
-	pointer-events: auto;
 	transform: translateY(0);
 }
 
 #enter {
-	margin: 0 4px;
 	padding: 6px 12px;
 	position: relative;
 }
@@ -136,7 +116,7 @@ button {
 #enter::before {
 	animation: enter 2s linear var(--transition) infinite;
 	border: 1px solid var(--red);
-	border-radius: 4px;
+	border-radius: 6px;
 	content: "";
 	inset: 0;
 	position: absolute;
@@ -163,7 +143,6 @@ button {
 }
 
 #controls {
-	align-items: flex-end;
 	bottom: var(--gap);
 	display: flex;
 	gap: var(--gap);
@@ -172,6 +151,7 @@ button {
 }
 
 #sound-btn {
+	align-self: flex-end;
 	align-items: flex-end;
 	gap: 4px;
 	height: 22px;
@@ -185,7 +165,7 @@ button {
 	width: 2px;
 }
 
-#sound-btn span.active {
+#sound-btn.active span {
 	animation: sound 1s infinite ease-in-out;
 }
 
@@ -209,61 +189,108 @@ button {
 	}
 }
 
-.fs-icon {
-	opacity: 0;
-	transition: opacity var(--transition) ease;
-}
-
-.fs-icon.active {
-	opacity: 1;
-}
-
-#zoom {
-	align-items: flex-end;
+#zoom,
+#force {
 	display: flex;
 	flex-direction: column-reverse;
 	gap: 1rem;
 	position: absolute;
-	right: var(--gap);
 	top: 50%;
 	transform: translateY(-50%);
 }
 
-#zoom span {
+#zoom {
+	align-items: flex-end;
+	right: var(--gap);
+}
+
+#force {
+	align-items: flex-start;
+	left: var(--gap);
+}
+
+#zoom span,
+#force span {
+	backdrop-filter: blur(var(--blur));
 	background-color: var(--transparent);
 	border-radius: 2px;
 	height: 2px;
 	transform: scaleX(0);
-	transform-origin: right;
 	transition: background-color var(--transition) ease, transform var(--transition) ease;
+}
+
+#zoom span {
+	transform-origin: right;
 	width: 1rem;
-	will-change: transform;
+}
+
+#force span {
+	transform-origin: left;
 }
 
 #zoom span:nth-of-type(odd) {
 	width: 1.5rem;
 }
 
-#zoom span.active {
+#zoom span.active,
+#force span.active {
 	background-color: #fff;
 }
 
-#zoom span.show {
+#zoom span.show,
+#force span.show {
 	transform: scaleX(1);
+}
+
+#force span:nth-of-type(1) {
+	width: 0.5rem;
+	background-color: var(--red);
+}
+
+#force span:nth-of-type(2) {
+	width: 0.75rem;
+	background-color: var(--red);
+}
+
+#force span:nth-of-type(3) {
+	width: 1rem;
+}
+
+#force span:nth-of-type(4) {
+	width: 1.25rem;
+}
+
+#force span:nth-of-type(5) {
+	width: 1.5rem;
+}
+
+#force span:nth-of-type(6) {
+	width: 1.75rem;
+}
+
+#force span:nth-of-type(7) {
+	width: 2rem;
+}
+
+#force span:nth-of-type(8) {
+	width: 2.25rem;
+}
+
+#force span:nth-of-type(9) {
+	width: 2.5rem;
 }
 
 #stars {
 	align-items: center;
+	bottom: var(--gap);
 	display: flex;
 	font-size: 1.5rem;
 	gap: 1rem;
-	justify-content: center;
 	left: var(--gap);
 	position: absolute;
-	top: var(--gap);
 }
 
-#total-stars {
+#stars-number {
 	font-size: 2rem;
 }
 
@@ -272,24 +299,10 @@ button {
 	bottom: var(--gap);
 	display: flex;
 	gap: var(--gap);
+	justify-content: center;
 	left: 50%;
 	position: absolute;
 	transform: translateX(-50%);
-}
-
-.level-item {
-	opacity: 0;
-	transform: translateY(1rem);
-	transition: opacity var(--transition) ease, transform var(--transition) ease;
-}
-
-.level-item.show {
-	opacity: 1;
-	transform: translateY(0);
-}
-
-.level {
-	position: relative;
 }
 
 .level-connect {
@@ -302,122 +315,158 @@ button {
 .level-btn {
 	border: 2px solid #fff;
 	border-radius: 50%;
-	color: #fff;
-	pointer-events: none;
+	display: grid;
 	height: 54px;
-	overflow: hidden;
+	place-items: center;
 	position: relative;
-	transition: border-color var(--transition) ease;
 	width: 54px;
 }
 
-.level-item.show .level-btn {
-	pointer-events: auto;
-}
-
-.level.locked .level-btn {
+.level-btn.locked {
 	border-color: var(--transparent);
 	cursor: not-allowed;
 }
 
-.level-number {
-	font-size: 1.25rem;
+.level-btn-number,
+.level-btn-play,
+.level-btn-lock {
+	grid-area: 1 / 1;
 }
 
-.level-number span {
-	transition: opacity var(--transition) ease;
+.level-btn-number {
+	font-size: 1.5rem;
+	transition: opacity var(--transition-hover) ease, transform var(--transition-hover) ease;
 }
 
-.level-number span:nth-of-type(2) {
-	transition-delay: 50ms;
-}
-
-.level.locked .level-number {
+.level-btn.locked .level-btn-number,
+.level-btn:hover .level-btn-number {
 	opacity: 0;
+	transform: translateX(1rem) scale(0.5);
 }
 
-.level-btn:hover .level-number span {
+.level-btn-play {
 	opacity: 0;
+	transform: translateX(-1rem) scale(0.5);
+	transition: opacity var(--transition-hover) ease, transform var(--transition-hover) ease;
 }
 
-.level:not(.locked):has(.level-btn:hover) .level-play span {
+.level-btn:hover:not(.locked) .level-btn-play {
 	opacity: 1;
+	transform: translateX(0) scale(1);
 }
 
-.level-btn:hover .level-play span:nth-of-type(1) {
-	transition-delay: 50ms;
-}
-
-.level-btn:hover .level-play span:nth-of-type(2) {
-	transition-delay: 100ms;
-}
-
-.level-btn:hover .level-play span:nth-of-type(3) {
-	transition-delay: 150ms;
-}
-
-.level-btn:hover .level-play span:nth-of-type(4) {
-	transition-delay: 200ms;
-}
-
-.level-lock,
-.level-play {
-	left: 50%;
-	position: absolute;
-	top: 50%;
-	transform: translate(-50%, -50%);
-}
-
-.level-star {
+.level-btn-star {
+	color: var(--transparent);
 	opacity: 0;
+	pointer-events: none;
 	position: absolute;
 	transition: opacity var(--transition-hover) ease, transform var(--transition-hover) ease;
 }
 
-.level-star.left {
+.level-btn-star.earned {
+	color: #fff;
+}
+
+.level-btn-star.left {
 	left: -12px;
 	top: -20px;
 	transform: translate(0.5rem, 0.5rem);
 }
 
-.level-star.middle {
+.level-btn-star.middle {
 	left: 50%;
 	top: -32px;
 	transform: translate(-50%, 0.5rem);
 	transition-delay: 50ms;
 }
 
-.level-star.right {
+.level-btn-star.right {
 	right: -12px;
 	top: -20px;
 	transform: translate(-0.5rem, 0.5rem);
 	transition-delay: 100ms;
 }
 
-.level-star use {
-	color: var(--transparent);
-}
-
-.level-star.earned use {
-	color: #fff;
-}
-
-.level:not(.locked):has(.level-btn:hover) .level-star {
+.level-btn:hover:not(.locked) .level-btn-star {
 	opacity: 1;
 	transform: translate(0, 0);
 }
 
-.level:not(.locked):has(.level-btn:hover) .level-star.middle {
+.level-btn:hover:not(.locked) .level-btn-star.middle {
 	transform: translate(-50%, 0);
 }
 
-#info {
-	display: none;
+/**/
+#level-info {
+	backdrop-filter: blur(var(--blur));
+	border: 2px solid var(--transparent);
+	border-radius: 1rem;
+	display: flex;
+	gap: var(--gap);
+	left: 50%;
+	opacity: 0;
+	padding: 1rem 0;
+	position: absolute;
+	top: var(--gap);
+	transform: translateX(-50%);
 }
 
-.icon {
-	height: 1.5rem;
-	width: 1.5rem;
+#info-level {
+	align-items: center;
+	align-self: stretch;
+	border-right: 2px solid var(--transparent);
+	display: flex;
+	font-size: 1.75rem;
+	justify-content: center;
+	margin-block: -1rem;
+	padding: 0 1.5rem;
+}
+
+.info-wrap {
+	align-items: center;
+	display: flex;
+	gap: 8px;
+	justify-content: center;
+}
+
+#quit {
+	align-self: stretch;
+	border-left: 2px solid var(--transparent);
+	margin-block: -1rem;
+	padding: 0 1.5rem;
+}
+
+#destruction {
+	align-items: center;
+	bottom: var(--gap);
+	display: flex;
+	pointer-events: none;
+	gap: 1rem;
+	justify-content: center;
+	left: 50%;
+	opacity: 0;
+	position: absolute;
+	transform: translateX(-50%);
+}
+
+#destruction-bar-wrap {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	width: 300px;
+}
+
+#destruction-stars {
+	align-items: center;
+	display: flex;
+	justify-content: space-around;
+}
+
+#destruction-bar {
+	background-color: var(--transparent);
+	border-radius: 2px;
+	height: 2px;
+	width: 300px;
 }
 
 #webgl {
@@ -426,9 +475,37 @@ button {
 	outline: none;
 	position: fixed;
 	transition: opacity 1.5s ease;
-	will-change: opacity;
 }
 
-#webgl.active {
+.ui-start {
+	opacity: 0;
+	pointer-events: none;
+	transform: translateY(1rem);
+	transition: opacity var(--transition) ease, transform var(--transition) ease;
+}
+
+.ui-start.show {
 	opacity: 1;
+	pointer-events: auto;
+	transform: translateY(0);
+}
+
+#loading span,
+#loaded span,
+.fs {
+	opacity: 0;
+	transition: opacity var(--transition) ease;
+}
+
+#loading span.show,
+#loaded span.show,
+.fs.active,
+#webgl.show {
+	opacity: 1;
+}
+
+#loader-bar.show,
+#zoom span.show,
+#force span.show {
+	transform: scaleX(1);
 }

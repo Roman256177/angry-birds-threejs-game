@@ -11,7 +11,7 @@ void main() {
     float wind = uTime + aWind;
     pos.x += sin(wind) * 1.5;
     pos.z += cos(wind) * 1.5;
-    vec4 mvPos = viewMatrix * modelMatrix * vec4(pos, 1.0);
+    vec4 mvPos = modelViewMatrix * vec4(pos, 1.0);
     gl_Position = projectionMatrix * mvPos;
     gl_PointSize = aSize * (300.0 / -mvPos.z);
     vHeight = pos.y / height;

@@ -4,11 +4,12 @@
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Angry Birds | WebGL game</title>
 	<meta name="description" content="WebGL game inspired by Angry Birds." />
 	<meta name="robots" content="index, follow" />
-	<link rel="icon" type="image/x-icon" href="/icons/favicon.ico" />
+	<link rel="icon" type="image/x-icon" href="/images/favicon.ico" />
+	<meta name="theme-color" content="#ea002a" />
 	<link rel="stylesheet" href="./style.css" />
-	<title>Angry Birds | WebGL game</title>
 	<script type="module" src="./main.js" defer></script>
 </head>
 
@@ -16,27 +17,36 @@
 	<svg style="display:none;" aria-hidden="true">
 		<symbol id="star-icon" viewBox="0 0 24 24">
 			<path d="M12 2V22M19.0711 4.92893L4.92893 19.0711M22 12H2M19.0711 19.0711L4.92893 4.92893"
-				stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
-		</symbol>
-		<symbol id="play-icon" viewBox="0 0 24 24">
-			<path
-				d="M5 4.98951C5 4.01835 5 3.53277 5.20249 3.2651C5.37889 3.03191 5.64852 2.88761 5.9404 2.87018C6.27544 2.85017 6.67946 3.11953 7.48752 3.65823L18.0031 10.6686C18.6708 11.1137 19.0046 11.3363 19.1209 11.6168C19.2227 11.8621 19.2227 12.1377 19.1209 12.383C19.0046 12.6635 18.6708 12.886 18.0031 13.3312L7.48752 20.3415C6.67946 20.8802 6.27544 21.1496 5.9404 21.1296C5.64852 21.1122 5.37889 20.9679 5.20249 20.7347C5 20.467 5 19.9814 5 19.0103V4.98951Z"
-				stroke="#ea002a" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+				stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
 		</symbol>
 		<symbol id="lock-icon" viewBox="0 0 24 24">
 			<path
 				d="M17 10V8C17 5.23858 14.7614 3 12 3C9.23858 3 7 5.23858 7 8V10M12 14.5V16.5M8.8 21H15.2C16.8802 21 17.7202 21 18.362 20.673C18.9265 20.3854 19.3854 19.9265 19.673 19.362C20 18.7202 20 17.8802 20 16.2V14.8C20 13.1198 20 12.2798 19.673 11.638C19.3854 11.0735 18.9265 10.6146 18.362 10.327C17.7202 10 16.8802 10 15.2 10H8.8C7.11984 10 6.27976 10 5.63803 10.327C5.07354 10.6146 4.6146 11.0735 4.32698 11.638C4 12.2798 4 13.1198 4 14.8V16.2C4 17.8802 4 18.7202 4.32698 19.362C4.6146 19.9265 5.07354 20.3854 5.63803 20.673C6.27976 21 7.11984 21 8.8 21Z"
-				stroke="#ffffff75" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+				stroke="#ffffff75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+		</symbol>
+		<symbol id="quit-icon" viewBox="0 0 24 24">
+			<path
+				d="M12.0001 2V12M18.3601 6.64C19.6185 7.89879 20.4754 9.50244 20.8224 11.2482C21.1694 12.9939 20.991 14.8034 20.3098 16.4478C19.6285 18.0921 18.4749 19.4976 16.9949 20.4864C15.515 21.4752 13.775 22.0029 11.9951 22.0029C10.2152 22.0029 8.47527 21.4752 6.99529 20.4864C5.51532 19.4976 4.36176 18.0921 3.68049 16.4478C2.99921 14.8034 2.82081 12.9939 3.16784 11.2482C3.51487 9.50244 4.37174 7.89879 5.63012 6.64"
+				stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+		</symbol>
+		<symbol id="flame-icon" viewBox="0 0 24 24">
+			<path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"
+				stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+		</symbol>
+		<symbol id="play-icon" viewBox="0 0 24 24">
+			<path
+				d="M5 4.98951C5 4.01835 5 3.53277 5.20249 3.2651C5.37889 3.03191 5.64852 2.88761 5.9404 2.87018C6.27544 2.85017 6.67946 3.11953 7.48752 3.65823L18.0031 10.6686C18.6708 11.1137 19.0046 11.3363 19.1209 11.6168C19.2227 11.8621 19.2227 12.1377 19.1209 12.383C19.0046 12.6635 18.6708 12.886 18.0031 13.3312L7.48752 20.3415C6.67946 20.8802 6.27544 21.1496 5.9404 21.1296C5.64852 21.1122 5.37889 20.9679 5.20249 20.7347C5 20.467 5 19.9814 5 19.0103V4.98951Z"
+				stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
 		</symbol>
 	</svg>
 
 	<div id="loader">
 		<div id="loader-wrap">
 			<div id="loader-text">
-				<p id="loading" aria-hidden="true">
+				<p id="loading">
 					<span>L</span><span>o</span><span>a</span><span>d</span><span>i</span><span>n</span><span>g</span>
 				</p>
-				<p id="loaded" aria-hidden="true">
+				<p id="loaded">
 					<span>L</span><span>o</span><span>a</span><span>d</span><span>e</span><span>d</span>
 				</p>
 			</div>
@@ -47,114 +57,158 @@
 
 	<main>
 		<div id="overlay">
-			<div id="controls">
-				<button id="sound-btn">
-					<span></span>
-					<span></span>
-					<span></span>
-					<span></span>
-				</button>
-				<button id="fs-btn">
-					<svg width="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.75"
-						stroke-linecap="round" stroke-linejoin="round">
-						<path class="fs-icon active"
-							d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-						<path class="fs-icon"
-							d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
-					</svg>
-				</button>
-			</div>
-
-			<div id="zoom" aria-hidden="true">
-				<span></span>
-				<span></span>
-				<span></span>
-				<span></span>
-				<span></span>
-				<span></span>
-				<span></span>
-				<span></span>
-				<span></span>
-			</div>
-
 			<div id="stars">
-				<p><span id="total-stars">0</span>/9</p>
-				<svg width="28" height="28" aria-hidden="true">
+				<p class="ui-start"><span id="stars-number">0</span>/9</p>
+				<svg class="ui-start" width="28" height="28">
 					<use href="#star-icon" />
 				</svg>
 			</div>
 
 			<div id="levels">
-				<div class="level level-item">
-					<button class="level-btn" data-level="1">
-						<p class="level-number"><span>0</span><span>1</span></p>
-						<p class="level-play" aria-hidden="true">
-							<span>P</span><span>l</span><span>a</span><span>y</span>
-						</p>
-					</button>
-					<svg class="level-star left" width="24" height="24" aria-hidden="true">
+				<button class="level-btn levels-item ui-start" data-level="1">
+					<p class="level-btn-number">1</p>
+					<svg class="level-btn-play" width="24" height="24">
+						<use href="#play-icon" />
+					</svg>
+					<svg class="level-btn-star left" width="22" height="22">
 						<use href="#star-icon" />
 					</svg>
-					<svg class="level-star middle" width="26" height="26" aria-hidden="true">
+					<svg class="level-btn-star middle" width="26" height="26">
 						<use href="#star-icon" />
 					</svg>
-					<svg class="level-star right" width="24" height="24" aria-hidden="true">
+					<svg class="level-btn-star right" width="22" height="22">
 						<use href="#star-icon" />
 					</svg>
-				</div>
+				</button>
 
-				<div class="level-connect level-item" aria-hidden="true"></div>
+				<div class="level-connect levels-item ui-start"></div>
 
-				<div class="level locked level-item">
-					<button class="level-btn" data-level="2">
-						<p class="level-number"><span>0</span><span>2</span></p>
-						<p class="level-play" aria-hidden="true">
-							<span>P</span><span>l</span><span>a</span><span>y</span>
-						</p>
-						<svg class="level-lock" width="24" height="24" aria-hidden="true">
-							<use href="#lock-icon" />
-						</svg>
-					</button>
-					<svg class="level-star left" width="24" height="24" aria-hidden="true">
+				<button class="level-btn levels-item ui-start locked" data-level="2">
+					<p class="level-btn-number">2</p>
+					<svg class="level-btn-lock" width="24" height="24">
+						<use href="#lock-icon" />
+					</svg>
+					<svg class="level-btn-play" width="24" height="24">
+						<use href="#play-icon" />
+					</svg>
+					<svg class="level-btn-star left" width="22" height="22">
 						<use href="#star-icon" />
 					</svg>
-					<svg class="level-star middle" width="26" height="26" aria-hidden="true">
+					<svg class="level-btn-star middle" width="26" height="26">
 						<use href="#star-icon" />
 					</svg>
-					<svg class="level-star right" width="24" height="24" aria-hidden="true">
+					<svg class="level-btn-star right" width="22" height="22">
 						<use href="#star-icon" />
 					</svg>
-				</div>
+				</button>
 
-				<div class="level-connect level-item" aria-hidden="true"></div>
+				<div class="level-connect levels-item ui-start"></div>
 
-				<div class="level locked level-item">
-					<button class="level-btn" data-level="3">
-						<p class="level-number"><span>0</span><span>3</span></p>
-						<p class="level-play" aria-hidden="true">
-							<span>P</span><span>l</span><span>a</span><span>y</span>
-						</p>
-						<svg class="level-lock" width="24" height="24" aria-hidden="true">
-							<use href="#lock-icon" />
-						</svg>
-					</button>
-					<svg class="level-star left" width="24" height="24" aria-hidden="true">
+				<button class="level-btn levels-item ui-start locked" data-level="3">
+					<p class="level-btn-number">3</p>
+					<svg class="level-btn-lock" width="24" height="24">
+						<use href="#lock-icon" />
+					</svg>
+					<svg class="level-btn-play" width="24" height="24">
+						<use href="#play-icon" />
+					</svg>
+					<svg class="level-btn-star left" width="22" height="22">
 						<use href="#star-icon" />
 					</svg>
-					<svg class="level-star middle" width="26" height="26" aria-hidden="true">
+					<svg class="level-btn-star middle" width="26" height="26">
 						<use href="#star-icon" />
 					</svg>
-					<svg class="level-star right" width="24" height="24" aria-hidden="true">
+					<svg class="level-btn-star right" width="22" height="22">
 						<use href="#star-icon" />
 					</svg>
-				</div>
-
+				</button>
 			</div>
 
-			<div id="info" aria-live="polite">
-				<div id="info-birds"></div>
-				<div id="info-pigs"></div>
+			<div id="controls">
+				<button id="sound-btn" class="ui-start">
+					<span></span>
+					<span></span>
+					<span></span>
+					<span></span>
+				</button>
+				<button id="fs-btn" class="ui-start">
+					<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.75"
+						stroke-linecap="round" stroke-linejoin="round">
+						<path class="fs active"
+							d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+						<path class="fs"
+							d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+					</svg>
+				</button>
 			</div>
+
+			<div id="zoom">
+				<span class="ui-start"></span>
+				<span class="ui-start"></span>
+				<span class="ui-start"></span>
+				<span class="ui-start"></span>
+				<span class="ui-start"></span>
+				<span class="ui-start"></span>
+				<span class="ui-start"></span>
+				<span class="ui-start"></span>
+				<span class="ui-start"></span>
+			</div>
+
+			<div id="force">
+				<span></span>
+				<span></span>
+				<span></span>
+				<span></span>
+				<span></span>
+				<span></span>
+				<span></span>
+				<span></span>
+				<span></span>
+			</div>
+
+			<div id="level-info">
+				<p id="info-level">0<span>1</span></p>
+				<div class="info-wrap">
+					<p class="info-number"><span>3</span>/3</p>
+					<img src="/images/bird.webp" alt="" width="24" height="24">
+				</div>
+				<div class="info-wrap">
+					<p class="info-number"><span>3</span>/3</p>
+					<img src="/images/pig.webp" alt="" width="24" height="24">
+				</div>
+				<div class="info-wrap">
+					<p class="info-number"><span>0</span>/3</p>
+					<svg width="24" height="24" aria-hidden="true">
+						<use href="#star-icon" />
+					</svg>
+				</div>
+				<button id="quit">
+					<svg width="28" height="28" aria-hidden="true">
+						<use href="#quit-icon" />
+					</svg>
+				</button>
+			</div>
+
+			<div id="destruction">
+				<svg width="24" height="24" aria-hidden="true">
+					<use href="#flame-icon" />
+				</svg>
+				<div id="destruction-bar-wrap">
+					<div id="destruction-stars">
+						<svg width="12" height="12" aria-hidden="true">
+							<use href="#star-icon" />
+						</svg>
+						<svg width="12" height="12" aria-hidden="true">
+							<use href="#star-icon" />
+						</svg>
+						<svg width="12" height="12" aria-hidden="true">
+							<use href="#star-icon" />
+						</svg>
+					</div>
+					<div id="destruction-bar"></div>
+				</div>
+			</div>
+
 		</div>
 		<canvas id="webgl"></canvas>
 	</main>
